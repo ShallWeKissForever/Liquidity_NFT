@@ -1,0 +1,22 @@
+[package]
+name = "LiquidityNFT"
+version = "1.0.0"
+authors = []
+
+[addresses]
+LiquidityNFT = "0x4bdea31c5b638b008712fa3c4da234836a849464269920f7832aa796a36f272c"
+deployer = "0xd41822b42fea653876fdfd83e7187b6ae80e0b2aab6a3b146d03068bd87623f5"
+
+[dev-addresses]
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dependencies.AptosTokenObjects]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-token-objects"
+
+[dev-dependencies]
