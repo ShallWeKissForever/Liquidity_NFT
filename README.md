@@ -13,12 +13,15 @@
 例如：
 
 当用户提供流动性时，发放NFT
+
 [![pAl5pQS.png](https://s21.ax1x.com/2024/09/27/pAl5pQS.png)](https://imgse.com/i/pAl5pQS)
 
 根据用户的LP Token份额占比来更新NFT
+
 [![pAl4zz8.png](https://s21.ax1x.com/2024/09/27/pAl4zz8.png)](https://imgse.com/i/pAl4zz8)
 
 根据用户能从流动性池中提取的费用数量来更新NFT
+
 [![pAl4xRf.png](https://s21.ax1x.com/2024/09/27/pAl4xRf.png)](https://imgse.com/i/pAl4xRf)
 
 **用户体验**：
