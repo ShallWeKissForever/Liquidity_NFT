@@ -11,6 +11,20 @@ module LiquidityNFT::router {
     use aptos_std::math128;
 
     use LiquidityNFT::liquidity_pool::{Self, LiquidityPool};
+    #[test_only]
+    use std::option;
+    #[test_only]
+    use std::signer;
+    #[test_only]
+    use std::string::utf8;
+    #[test_only]
+    use aptos_std::debug;
+    #[test_only]
+    use aptos_framework::account;
+    #[test_only]
+    use aptos_framework::timestamp;
+    #[test_only]
+    use LiquidityNFT::liquidity_pool::{initialize};
 
     /// Output is less than the desired minimum amount.
     const EINSUFFICIENT_OUTPUT_AMOUNT: u64 = 1;
@@ -217,5 +231,76 @@ module LiquidityNFT::router {
 
     public entry fun lp_nft_update(lp: &signer, token_address: address, pool: Object<LiquidityPool>) {
         liquidity_pool::lp_nft_request_for_update_uri(lp, &token_address, pool);
+    }
+
+    #[test()]
+    fun test() {
+
+        //////////////////////////////////////// initialize ////////////////////////////////////////
+
+        // initialize the accounts for test
+        let aptos_framework = account::create_account_for_test(@0x1);
+        let deployer = account::create_account_for_test(@deployer);
+        let user1 = account::create_account_for_test(@user1);
+        let user2 = account::create_account_for_test(@user2);
+
+        // start and set timestamp
+        timestamp::set_time_has_started_for_testing(&aptos_framework);
+        timestamp::update_global_time_for_test(1700000000_000_000);
+
+        // create the 1st FA
+        let object1_cref = object::create_named_object(&deployer, b"GAU");
+        primary_fungible_store::create_primary_store_enabled_fungible_asset(
+            &object1_cref,
+            option::none(),
+            utf8(b"GAU"),
+            utf8(b"GAU"),
+            6,
+            utf8(b""),
+            utf8(b""),
+        );
+        let object1_metadata = object::object_from_constructor_ref<Metadata>(&object1_cref);
+        let token1_mint_ref = fungible_asset::generate_mint_ref(&object1_cref);
+        debug::print(&object1_metadata);
+
+        // create the 2nd FA
+        let object2_cref = object::create_named_object(&deployer, b"USS");
+        primary_fungible_store::create_primary_store_enabled_fungible_asset(
+            &object2_cref,
+            option::none(),
+            utf8(b"USS"),
+            utf8(b"USS"),
+            6,
+            utf8(b""),
+            utf8(b""),
+        );
+        let object2_metadata = object::object_from_constructor_ref<Metadata>(&object2_cref);
+        let token2_mint_ref = fungible_asset::generate_mint_ref(&object2_cref);
+        debug::print(&object2_metadata);
+
+        // mint FA to 2 users
+        primary_fungible_store::mint(&token1_mint_ref, signer::address_of(&user1), 1000_000_000);
+        primary_fungible_store::mint(&token2_mint_ref, signer::address_of(&user1), 1000_000_000);
+        primary_fungible_store::mint(&token1_mint_ref, signer::address_of(&user2), 1000_000_000);
+        primary_fungible_store::mint(&token2_mint_ref, signer::address_of(&user2), 1000_000_000);
+
+        debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object1_metadata));
+        debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object2_metadata));
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        initialize(&deployer);
+
+        create_pool(object1_metadata, object2_metadata, false);
+
+        add_liquidity_entry(&user1, object1_metadata, object2_metadata, false, 100_000_000, 100_000_000, 1,1);
+
+        debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object1_metadata));
+        debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object2_metadata));
+
+        add_liquidity_entry(&user2, object1_metadata, object2_metadata, false, 100_000_000, 100_000_000, 1,1);
+
+        debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object1_metadata));
+        debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object2_metadata));
     }
 }

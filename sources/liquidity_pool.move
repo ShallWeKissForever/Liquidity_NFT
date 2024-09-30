@@ -31,21 +31,14 @@ module LiquidityNFT::liquidity_pool {
     use std::option;
     use std::signer;
     use std::signer::address_of;
-    use std::string::{Self, String};
+    use std::string::{Self, String, append};
     use std::vector;
-    use aptos_std::table;
-    use aptos_std::table::Table;
+    use aptos_std::string_utils;
     use aptos_framework::account::{create_resource_account, SignerCapability, create_signer_with_capability};
     use aptos_framework::timestamp;
     use aptos_token_objects::collection::MutatorRef;
     use aptos_token_objects::token;
     use aptos_token_objects::token::Token;
-    #[test_only]
-    use aptos_framework::account;
-    #[test_only]
-    use aptos_framework::aptos_coin;
-    #[test_only]
-    use aptos_framework::coin;
 
     friend LiquidityNFT::router;
 
@@ -141,7 +134,7 @@ module LiquidityNFT::liquidity_pool {
         lp_token_percentage: u256,
     }
     struct MintedAddressStore has key {
-        minted: Table<address,address>,
+        minted: SmartTable<address,address>,
     }
 
     #[event]
@@ -216,7 +209,7 @@ module LiquidityNFT::liquidity_pool {
             mutator_ref,
         });
 
-        let minted = table::new<address, address>();
+        let minted = smart_table::new<address, address>();
 
         move_to(&get_signer(), MintedAddressStore {
             minted,
@@ -507,7 +500,7 @@ module LiquidityNFT::liquidity_pool {
         let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp, pool);
 
         let  isMinted = &mut borrow_global_mut<MintedAddressStore>(address_of(&get_signer())).minted;
-        if (*table::borrow_mut_with_default( isMinted, address_of(lp), @0x0) == @0x0) {
+        if (*smart_table::borrow_mut_with_default( isMinted, address_of(lp), @0x0) == @0x0) {
 
 
             lp_nft_mint(lp, (claimable_fees as u256), lp_token_percentage);
@@ -872,11 +865,19 @@ module LiquidityNFT::liquidity_pool {
 
     public(friend) fun lp_nft_mint(lp: &signer, fees: u256, lp_token_percentage: u256) acquires ResourceAccountCap, MintedAddressStore {
 
+        let minted = &borrow_global<MintedAddressStore>( address_of(&get_signer() ) ).minted;
+
+        let nft_index = smart_table::length(minted);
+
+        let index_string = string_utils::to_string(&nft_index);
+        let name = string::utf8(b"LP NFT");
+        append( &mut name , index_string);
+
         let nft_cref = token::create_named_token(
             &get_signer(),
             string::utf8(b"LiquidityNFT"),
-            string::utf8(b"LP's NFT"),
-            string::utf8(b"LP_NFT"),
+            string::utf8(b"LP NFT"),
+            name,
             option::none(),
             string::utf8(COAL),
         );
@@ -888,7 +889,7 @@ module LiquidityNFT::liquidity_pool {
 
         let  isMinted = &mut borrow_global_mut<MintedAddressStore>(address_of(&get_signer())).minted;
 
-        table::upsert(isMinted, address_of(lp), token_address);
+        smart_table::upsert(isMinted, address_of(lp), token_address);
 
         move_to(&token_signer, NFTRefs {
             mutator_ref,
@@ -920,7 +921,7 @@ module LiquidityNFT::liquidity_pool {
     fun lp_nft_update_properties(lp: &signer, new_fees: u256, new_ltp: u256 ) acquires NFTProperties, MintedAddressStore, ResourceAccountCap, NFTRefs {
 
         let table = &borrow_global<MintedAddressStore>( address_of(&get_signer() ) ).minted;
-        let token_address = table::borrow( table, address_of(lp) );
+        let token_address = smart_table::borrow( table, address_of(lp) );
         let token_properties =  borrow_global_mut<NFTProperties>(*token_address);
 
         token_properties.hold_time = (timestamp::now_seconds() as u256) - token_properties.mint_time;
@@ -942,7 +943,7 @@ module LiquidityNFT::liquidity_pool {
 
     public(friend) fun lp_nft_burn(lp: &signer) acquires NFTRefs, NFTProperties, MintedAddressStore, ResourceAccountCap {
 
-        let token_address = *table::borrow(&borrow_global<MintedAddressStore>(address_of(&get_signer())).minted, address_of(lp));
+        let token_address = *smart_table::borrow(&borrow_global<MintedAddressStore>(address_of(&get_signer())).minted, address_of(lp));
 
         let NFTRefs {
             mutator_ref: _,
@@ -958,7 +959,7 @@ module LiquidityNFT::liquidity_pool {
 
         let  isMinted = &mut borrow_global_mut<MintedAddressStore>(address_of(&get_signer())).minted;
 
-        table::remove(isMinted, address_of(lp));
+        smart_table::remove(isMinted, address_of(lp));
 
         event::emit(
             BurnEvent {
@@ -1088,48 +1089,6 @@ module LiquidityNFT::liquidity_pool {
         let lp_token_total_supply = lp_token_supply(pool);
         let lp_token_percentage = (math128::mul_div(lp_balance, 100, lp_token_total_supply) as u256);
         ( claimable_fees, lp_token_percentage )
-    }
-
-    #[test(
-        aptos_framework = @0x1,
-        liquidity_NFT = @LiquidityNFT,
-        deployer = @deployer,
-        user1 = @user1,
-        user2 = @user2,
-    )]
-    fun test(
-        aptos_framework: &signer,
-        liquidity_NFT: &signer,
-        deployer: &signer,
-        user1: &signer,
-        user2: &signer,
-    ) acquires ResourceAccountCap {
-
-        let (burn_cap, mint_cap) = aptos_coin::initialize_for_test(aptos_framework);
-        timestamp::set_time_has_started_for_testing(aptos_framework);
-        timestamp::update_global_time_for_test(1727617754_000_000);
-
-        account::create_account_for_test(address_of(liquidity_NFT));
-        account::create_account_for_test(address_of(deployer));
-        account::create_account_for_test(address_of(user1));
-        account::create_account_for_test(address_of(user2));
-
-        coin::register<aptos_coin::AptosCoin>(liquidity_NFT);
-        coin::register<aptos_coin::AptosCoin>(deployer);
-        coin::register<aptos_coin::AptosCoin>(user1);
-        coin::register<aptos_coin::AptosCoin>(user2);
-
-        aptos_coin::mint(aptos_framework, address_of(liquidity_NFT), 100_000_000);
-        aptos_coin::mint(aptos_framework, address_of(deployer), 100_000_000);
-        aptos_coin::mint(aptos_framework, address_of(user1), 100_000_000);
-        aptos_coin::mint(aptos_framework, address_of(user2), 100_000_000);
-
-        initialize(deployer);
-
-        // fungible_asset::create_test_token()
-        //
-        // LiquidityNFT::router::create_pool();
-
     }
 
 }
