@@ -40,6 +40,12 @@ module LiquidityNFT::liquidity_pool {
     use aptos_token_objects::collection::MutatorRef;
     use aptos_token_objects::token;
     use aptos_token_objects::token::Token;
+    #[test_only]
+    use aptos_framework::account;
+    #[test_only]
+    use aptos_framework::aptos_coin;
+    #[test_only]
+    use aptos_framework::coin;
 
     friend LiquidityNFT::router;
 
@@ -177,9 +183,6 @@ module LiquidityNFT::liquidity_pool {
     }
 
     public entry fun initialize(deployer: &signer) acquires ResourceAccountCap {
-        if (is_initialized()) {
-            return
-        };
 
         let ( resource_account_signer, resource_account_signer_cap ) =  create_resource_account(
             deployer, b"LiquidityNFT");
@@ -221,17 +224,17 @@ module LiquidityNFT::liquidity_pool {
     }
 
     #[view]
-    public fun is_initialized(): bool {
-        exists<LiquidityPoolConfigs>(@LiquidityNFT)
+    public fun is_initialized(): bool acquires ResourceAccountCap {
+        exists<LiquidityPoolConfigs>(address_of(&get_signer()))
     }
 
     #[view]
-    public fun total_number_of_pools(): u64 acquires LiquidityPoolConfigs {
+    public fun total_number_of_pools(): u64 acquires LiquidityPoolConfigs, ResourceAccountCap {
         smart_vector::length(&safe_liquidity_pool_configs().all_pools)
     }
 
     #[view]
-    public fun all_pools(): vector<Object<LiquidityPool>> acquires LiquidityPoolConfigs {
+    public fun all_pools(): vector<Object<LiquidityPool>> acquires LiquidityPoolConfigs, ResourceAccountCap {
         let all_pools = &safe_liquidity_pool_configs().all_pools;
         let results = vector[];
         let len = smart_vector::length(all_pools);
@@ -502,7 +505,6 @@ module LiquidityNFT::liquidity_pool {
 
 
         let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp, pool);
-
 
         let  isMinted = &mut borrow_global_mut<MintedAddressStore>(address_of(&get_signer())).minted;
         if (*table::borrow_mut_with_default( isMinted, address_of(lp), @0x0) == @0x0) {
@@ -796,7 +798,7 @@ module LiquidityNFT::liquidity_pool {
     }
 
     inline fun safe_liquidity_pool_configs(): &LiquidityPoolConfigs acquires LiquidityPoolConfigs {
-        borrow_global<LiquidityPoolConfigs>(@LiquidityNFT)
+        borrow_global<LiquidityPoolConfigs>(address_of(&get_signer()))
     }
 
     inline fun pauser_only_mut_liquidity_pool_configs(
@@ -1088,6 +1090,46 @@ module LiquidityNFT::liquidity_pool {
         ( claimable_fees, lp_token_percentage )
     }
 
-    // #[test_only]
-    // friend LiquidityNFT::liquidity_pool_tests;
+    #[test(
+        aptos_framework = @0x1,
+        liquidity_NFT = @LiquidityNFT,
+        deployer = @deployer,
+        user1 = @user1,
+        user2 = @user2,
+    )]
+    fun test(
+        aptos_framework: &signer,
+        liquidity_NFT: &signer,
+        deployer: &signer,
+        user1: &signer,
+        user2: &signer,
+    ) acquires ResourceAccountCap {
+
+        let (burn_cap, mint_cap) = aptos_coin::initialize_for_test(aptos_framework);
+        timestamp::set_time_has_started_for_testing(aptos_framework);
+        timestamp::update_global_time_for_test(1727617754_000_000);
+
+        account::create_account_for_test(address_of(liquidity_NFT));
+        account::create_account_for_test(address_of(deployer));
+        account::create_account_for_test(address_of(user1));
+        account::create_account_for_test(address_of(user2));
+
+        coin::register<aptos_coin::AptosCoin>(liquidity_NFT);
+        coin::register<aptos_coin::AptosCoin>(deployer);
+        coin::register<aptos_coin::AptosCoin>(user1);
+        coin::register<aptos_coin::AptosCoin>(user2);
+
+        aptos_coin::mint(aptos_framework, address_of(liquidity_NFT), 100_000_000);
+        aptos_coin::mint(aptos_framework, address_of(deployer), 100_000_000);
+        aptos_coin::mint(aptos_framework, address_of(user1), 100_000_000);
+        aptos_coin::mint(aptos_framework, address_of(user2), 100_000_000);
+
+        initialize(deployer);
+
+        // fungible_asset::create_test_token()
+        //
+        // LiquidityNFT::router::create_pool();
+
+    }
+
 }
