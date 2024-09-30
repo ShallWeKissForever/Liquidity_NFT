@@ -16,6 +16,8 @@ module LiquidityNFT::router {
     #[test_only]
     use std::signer;
     #[test_only]
+    use std::signer::address_of;
+    #[test_only]
     use std::string::utf8;
     #[test_only]
     use aptos_std::debug;
@@ -241,8 +243,8 @@ module LiquidityNFT::router {
         // initialize the accounts for test
         let aptos_framework = account::create_account_for_test(@0x1);
         let deployer = account::create_account_for_test(@deployer);
-        let user1 = account::create_account_for_test(@user1);
-        let user2 = account::create_account_for_test(@user2);
+        let user1 = account::create_account_for_test(@0xaaa1);
+        let user2 = account::create_account_for_test(@0xbbb2);
 
         // start and set timestamp
         timestamp::set_time_has_started_for_testing(&aptos_framework);
@@ -302,5 +304,19 @@ module LiquidityNFT::router {
 
         debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object1_metadata));
         debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object2_metadata));
+
+        remove_liquidity_entry(
+            &user1,
+            object1_metadata,
+            object2_metadata,
+            false,
+            99999000,
+            1,
+            1,
+            address_of(&user1)
+        );
+
+        add_liquidity_entry(&user1, object1_metadata, object2_metadata, false, 100_000_000, 100_000_000, 1,1);
+
     }
 }
