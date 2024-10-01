@@ -19,7 +19,7 @@
 
 decimal = 6
 - FA1_Metadata: 0x7f2bf107ba43b8f16332aa88d43713b811dc24f4abc8c68bb73ac44613559476
-- FA1_Metadata: 0x1c71da02f726fa948d0d790d215401020a701ee5e1968b8329a2fcdb032315ad
+- FA2_Metadata: 0x1c71da02f726fa948d0d790d215401020a701ee5e1968b8329a2fcdb032315ad
 
 [![pA31MUx.png](https://s21.ax1x.com/2024/10/01/pA31MUx.png)](https://imgse.com/i/pA31MUx)
 
@@ -37,7 +37,7 @@ decimal = 6
 
 我们减少了对应数量的FA，并获得了 LP Token和 LP NFT
 
-[![pA33gSO.jpg](https://s21.ax1x.com/2024/10/01/pA33gSO.jpg)](https://imgse.com/i/pA33gSO)
+[![pA335TI.jpg](https://s21.ax1x.com/2024/10/01/pA335TI.jpg)](https://imgse.com/i/pA335TI)
 
 4. 用另一个账户添加流动性
 
