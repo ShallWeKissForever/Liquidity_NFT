@@ -37,7 +37,7 @@ decimal = 6
 
 我们减少了对应数量的FA，并获得了 LP Token和 LP NFT
 
-[![pA335TI.jpg](https://s21.ax1x.com/2024/10/01/pA335TI.jpg)](https://imgse.com/i/pA335TI)
+[![pA337ff.jpg](https://s21.ax1x.com/2024/10/01/pA337ff.jpg)](https://imgse.com/i/pA337ff)
 
 4. 用另一个账户添加流动性
 
