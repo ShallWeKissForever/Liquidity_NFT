@@ -15,7 +15,9 @@
 
 操作示例：
 
-1. 我们先[铸造](https://explorer.aptoslabs.com/account/0x71dfdf10572f2d5ba5a66ccbf6e7a785d201fdb4bda312a870deeec3d8fd2f96/modules/run/launchpad1?network=testnet)两种FA各1000个用于提供流动性和进行swap
+1.铸造要使用的FA
+
+我们先[铸造](https://explorer.aptoslabs.com/account/0x71dfdf10572f2d5ba5a66ccbf6e7a785d201fdb4bda312a870deeec3d8fd2f96/modules/run/launchpad1?network=testnet)两种FA各1000个用于提供流动性和进行swap
 
 decimal = 6
 - FA1_Metadata: 0x7f2bf107ba43b8f16332aa88d43713b811dc24f4abc8c68bb73ac44613559476
@@ -25,7 +27,9 @@ decimal = 6
 
 [![pA311PK.png](https://s21.ax1x.com/2024/10/01/pA311PK.png)](https://imgse.com/i/pA311PK)
 
-2. 用这两个FA的Metadata创建流动性池，稳定币选项填false
+2.创建流动性池
+
+用这两个FA的Metadata创建流动性池，稳定币选项填false
 
 [![pA3138O.png](https://s21.ax1x.com/2024/10/01/pA3138O.png)](https://imgse.com/i/pA3138O)
 
