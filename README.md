@@ -10,6 +10,9 @@
 **动态更新机制**：
 当持有时间、可提取费用或LP Token持有比例满足特定条件时，NFT会自动更新其内容和外观，提供实时反馈。
 
+**用户体验**：
+该项目旨在提供直观且互动的投资体验，降低DeFi的学习门槛，通过创新设计激励用户长期参与，同时为NFT赋予更广泛的实用性和交易价值。这种结合不仅增强了用户的参与感，还能提升市场流动性和NFT的市场价值。
+
 操作示例：
 
 1. 我们先[铸造](https://explorer.aptoslabs.com/account/0x71dfdf10572f2d5ba5a66ccbf6e7a785d201fdb4bda312a870deeec3d8fd2f96/modules/run/launchpad1?network=testnet)两种FA各1000个用于提供流动性和进行swap
@@ -20,7 +23,7 @@ decimal = 6
 
 [![pA31MUx.png](https://s21.ax1x.com/2024/10/01/pA31MUx.png)](https://imgse.com/i/pA31MUx)
 
-[![pA311PK.md.png](https://s21.ax1x.com/2024/10/01/pA311PK.md.png)](https://imgse.com/i/pA311PK)
+[![pA311PK.png](https://s21.ax1x.com/2024/10/01/pA311PK.png)](https://imgse.com/i/pA311PK)
 
 2. 用这两个FA的Metadata创建流动性池，稳定币选项填false
 
@@ -62,6 +65,3 @@ decimal = 6
 LP Token为0时，LP NFT 也被销毁了
 
 
-
-**用户体验**：
-该项目旨在提供直观且互动的投资体验，降低DeFi的学习门槛，通过创新设计激励用户长期参与，同时为NFT赋予更广泛的实用性和交易价值。这种结合不仅增强了用户的参与感，还能提升市场流动性和NFT的市场价值。
