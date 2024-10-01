@@ -1,9 +1,3 @@
-/// This module provides an interface for liquidity_pool that supports both coins and native fungible assets.
-///
-/// A liquidity pool has two tokens and thus can have 3 different combinations: 2 native fungible assets, 1 coin and
-/// 1 native fungible asset, or 2 coins. Each combination has separate functions for swap, add and remove liquidity.
-/// The coins provided by the users are wrapped and coins are returned to users by unwrapping internal fungible asset
-/// with coin_wrapper.
 module LiquidityNFT::router {
     use aptos_framework::fungible_asset::{Self, FungibleAsset, Metadata};
     use aptos_framework::object::{Self, Object};
@@ -231,8 +225,14 @@ module LiquidityNFT::router {
         (redeemed_1, redeemed_2)
     }
 
-    public entry fun lp_nft_update(lp: &signer, token_address: address, pool: Object<LiquidityPool>) {
-        liquidity_pool::lp_nft_request_for_update_uri(lp, &token_address, pool);
+    public entry fun lp_nft_update(
+        lp: &signer,
+        token_address: address,
+        token_1: Object<Metadata>,
+        token_2: Object<Metadata>,
+        is_stable: bool
+    ) {
+        liquidity_pool::lp_nft_request_for_update_uri(lp, &token_address, token_1, token_2, is_stable);
     }
 
     #[test()]
@@ -295,12 +295,30 @@ module LiquidityNFT::router {
 
         create_pool(object1_metadata, object2_metadata, false);
 
-        add_liquidity_entry(&user1, object1_metadata, object2_metadata, false, 100_000_000, 100_000_000, 1,1);
+        add_liquidity_entry(
+            &user1,
+            object1_metadata,
+            object2_metadata,
+            false,
+            100_000_000,
+            100_000_000,
+            1,
+            1
+        );
 
         debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object1_metadata));
         debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object2_metadata));
 
-        add_liquidity_entry(&user2, object1_metadata, object2_metadata, false, 100_000_000, 100_000_000, 1,1);
+        add_liquidity_entry(
+            &user2,
+            object1_metadata,
+            object2_metadata,
+            false,
+            100_000_000,
+            100_000_000,
+            1,
+            1
+        );
 
         debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object1_metadata));
         debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object2_metadata));
@@ -316,7 +334,16 @@ module LiquidityNFT::router {
             address_of(&user1)
         );
 
-        add_liquidity_entry(&user1, object1_metadata, object2_metadata, false, 100_000_000, 100_000_000, 1,1);
+        add_liquidity_entry(
+            &user1,
+            object1_metadata,
+            object2_metadata,
+            false,
+            100_000_000,
+            100_000_000,
+            1,
+            1
+        );
 
     }
 }

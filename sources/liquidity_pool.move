@@ -1,17 +1,3 @@
-/// This module provides a common type of liquidity pool that supports both volatile and stable token pairs. It uses
-/// fungible assets underneath and needs a separate router + coin_wrapper to support coins (different standard from
-/// fungible assets). Swap fees are kept separately from the pool's reserves and thus don't compound.
-///
-/// For volatile pairs, the price and reserves can be computed using the constant product formula k = x * y.
-/// For stable pairs, the price is computed using k = x^3 * y + x * y^3.
-///
-/// Note that all functions that return fungible assets such as swap, burn, claim_fees are friend-only since they might
-/// return an internal wrapper fungible assets. The router or other modules should provide interface to call these based
-/// on the underlying tokens of the pool - whether they're coins or fungible assets. See router.move for an example.
-///
-/// Another important thing to note is that all transfers of the LP tokens have to call via this module. This is
-/// required so that fees are correctly updated for LPs. fungible_asset::transfer and primary_fungible_store::transfer
-/// are not supported
 module LiquidityNFT::liquidity_pool {
     use aptos_framework::event;
     use aptos_framework::fungible_asset::{
@@ -43,7 +29,7 @@ module LiquidityNFT::liquidity_pool {
     friend LiquidityNFT::router;
 
     const FEE_SCALE: u64 = 10000;
-    const LP_TOKEN_DECIMALS: u8 = 8;
+    const LP_TOKEN_DECIMALS: u8 = 6;
     const MINIMUM_LIQUIDITY: u64 = 1000;
     const MAX_SWAP_FEES_BPS: u64 = 25; // 0.25%
 
@@ -515,6 +501,8 @@ module LiquidityNFT::liquidity_pool {
                 lp_token_percentage
             );
 
+            lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage);
+
         } else {
 
             lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage);
@@ -936,7 +924,11 @@ module LiquidityNFT::liquidity_pool {
 
     }
 
-    fun lp_nft_update_properties(lp: &signer, new_fees: u256, new_ltp: u256 ) acquires NFTProperties, MintedAddressStore, ResourceAccountCap, NFTRefs {
+    fun lp_nft_update_properties(
+        lp: &signer,
+        new_fees: u256,
+        new_ltp: u256
+    ) acquires NFTProperties, MintedAddressStore, ResourceAccountCap, NFTRefs {
 
         let table = &borrow_global<MintedAddressStore>( address_of(&get_signer() ) ).minted;
         let token_address = smart_table::borrow( table, address_of(lp) );
@@ -961,7 +953,10 @@ module LiquidityNFT::liquidity_pool {
 
     public(friend) fun lp_nft_burn(lp: &signer) acquires NFTRefs, NFTProperties, MintedAddressStore, ResourceAccountCap {
 
-        let token_address = *smart_table::borrow(&borrow_global<MintedAddressStore>(address_of(&get_signer())).minted, address_of(lp));
+        let token_address = *smart_table::borrow(
+            &borrow_global<MintedAddressStore>(address_of(&get_signer())).minted,
+            address_of(lp)
+        );
 
         let NFTRefs {
             mutator_ref: _,
@@ -1040,7 +1035,15 @@ module LiquidityNFT::liquidity_pool {
 
     }
 
-    public(friend) fun lp_nft_request_for_update_uri(lp: &signer, token_address: &address, pool: Object<LiquidityPool>) acquires NFTRefs, FeesAccounting {
+    public(friend) fun lp_nft_request_for_update_uri(
+        lp: &signer,
+        token_address: &address,
+        token_1: Object<Metadata>,
+        token_2: Object<Metadata>,
+        is_stable: bool
+    ) acquires NFTRefs, FeesAccounting, ResourceAccountCap {
+
+        let pool = liquidity_pool(token_1, token_2, is_stable);
 
         let (fees, ltp) = lp_nft_get_fees_and_plt(lp, pool);
 

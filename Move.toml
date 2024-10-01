@@ -4,8 +4,8 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-LiquidityNFT = "0xb955219c36bf638334ff07c5625facc30a3be2db6bbba311fcb3732baf05b469"
-deployer = "0x7df06ff49afae7c1cf4a44008269b1e5cabb1366629c7837f46b2c39b153f782"
+LiquidityNFT = "0xb18ca613e54dfc68b49ef70cded14e81f7328559ff37c169aac724f2f6fee625"
+deployer = "0x7ece22b7e4abc86cebacd2bbb5250fd1e166e28c7879930b9a933dcc1da6be5f"
 
 [dev-addresses]
 
