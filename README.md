@@ -37,31 +37,31 @@ decimal = 6
 
 我们减少了对应数量的FA，并获得了 LP Token和 LP NFT
 
-[![pA31nbR.png](https://s21.ax1x.com/2024/10/01/pA31nbR.png)](https://imgse.com/i/pA31nbR)
-[![pA31KV1.png](https://s21.ax1x.com/2024/10/01/pA31KV1.png)](https://imgse.com/i/pA31KV1)
-[![pA3182D.png](https://s21.ax1x.com/2024/10/01/pA3182D.png)](https://imgse.com/i/pA3182D)
-[![pA31Gxe.png](https://s21.ax1x.com/2024/10/01/pA31Gxe.png)](https://imgse.com/i/pA31Gxe)
+[![pA33gSO.jpg](https://s21.ax1x.com/2024/10/01/pA33gSO.jpg)](https://imgse.com/i/pA33gSO)
 
 4. 用另一个账户添加流动性
 
-切换到另一个账户，这次两种代币分别添加75个
+切换到另一个账户，这次两种代币分别添加75个，可以看到，由于 LP Token 持有的份额不同，NFT的样式也是不一样的
 
-可以看到，由于 LP Token 持有的份额不同，NFT的样式也是不一样的
+[![pA33R6e.png](https://s21.ax1x.com/2024/10/01/pA33R6e.png)](https://imgse.com/i/pA33R6e)
 
 5. 进行swap
 
 填入要进行swap的数量100，期望最小收到代币的值1，源代币Metadata，目标代币Metadata，稳定币选项false，接收人地址
 
-
+[![pA33WOH.png](https://s21.ax1x.com/2024/10/01/pA33WOH.png)](https://imgse.com/i/pA33WOH)
 
 继续进行swap使LP的手续费快速累积，当可提取的手续费达到一定阈值的时候，NFT的样式也会改变（你可以一眼看出你获得的手续费已经积累了很多了）
 
-
+[![pA336fK.jpg](https://s21.ax1x.com/2024/10/01/pA336fK.jpg)](https://imgse.com/i/pA336fK)
 
 6. 移除流动性
 
 移除所有的 LP Token
 
+[![pA332lD.png](https://s21.ax1x.com/2024/10/01/pA332lD.png)](https://imgse.com/i/pA332lD)
+
 LP Token为0时，LP NFT 也被销毁了
 
+[![pA33yY6.png](https://s21.ax1x.com/2024/10/01/pA33yY6.png)](https://imgse.com/i/pA33yY6)
 
