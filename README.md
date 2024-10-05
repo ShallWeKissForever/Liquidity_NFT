@@ -23,6 +23,8 @@ decimal = 6
 - FA1_Metadata: 0x7f2bf107ba43b8f16332aa88d43713b811dc24f4abc8c68bb73ac44613559476
 - FA2_Metadata: 0x1c71da02f726fa948d0d790d215401020a701ee5e1968b8329a2fcdb032315ad
 
+![image](https://github.com/user-attachments/assets/f273e62a-dc4b-403a-acf1-d9337871ae50)
+
 [![pA31MUx.png](https://s21.ax1x.com/2024/10/01/pA31MUx.png)](https://imgse.com/i/pA31MUx)
 
 [![pA311PK.png](https://s21.ax1x.com/2024/10/01/pA311PK.png)](https://imgse.com/i/pA311PK)
