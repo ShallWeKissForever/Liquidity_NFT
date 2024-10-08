@@ -37,7 +37,7 @@ coverage/
 .env
 .env.local
 # 包含敏感信息的配置文件
-/secrets.json
+.aptos/
 # 本地开发依赖
 node_modules/
 # IDE 或编辑器生成的文件夹
