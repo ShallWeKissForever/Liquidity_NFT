@@ -1,12 +1,12 @@
 import  Header  from './Header'
-import UniswapFeature from './Body'
+import SwapFeature from './Body'
 
 function App() {
 
   return (
     <>
       <Header />
-      <UniswapFeature />
+      <SwapFeature />
     </>
   )
 

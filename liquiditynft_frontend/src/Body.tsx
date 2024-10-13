@@ -1,8 +1,17 @@
-import './css/Body.css'
+import './css/Body.css';
 import { useState } from 'react';
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import {  Col, Row, Button, Input, Modal, List } from 'antd';
-import { useWallet } from '@aptos-labs/wallet-adapter-react';
+import { useWallet, InputTransactionData } from '@aptos-labs/wallet-adapter-react';
 import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
+
+//设置 Aptos 与 testnet 网络交互
+const aptosConfig = new AptosConfig({ network: Network.TESTNET });
+//初始化一个 Aptos 实例
+const aptos = new Aptos(aptosConfig);
+
+const resource_Account_Address = "0x11c78a6c9e5105784f5a380ebc6e4efa71de7c17f0775898f4d57f08470d5251";
+const moduleAddress = "0x07428b8f770c6455453e2b0bc602553bc4d145a926e41b8de82f2229fa7e8284";
 
 const coinList = [
   { symbol: 'ETH', name: 'Ethereum' },
@@ -63,6 +72,10 @@ function CoinSelector() {
 
 // 功能组件
 function Swap() {
+
+  //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
+  const { account, signAndSubmitTransaction } = useWallet();
+
   return (
     <>
 
@@ -74,7 +87,10 @@ function Swap() {
 
       <br />
 
-      <input className='box-input'/>
+      <input 
+        className='box-input'
+        placeholder='0'
+      />
 
       <CoinSelector />
 
@@ -88,11 +104,26 @@ function Swap() {
 
       <br />
 
-      <input className='box-input'/>
+      <input 
+        className='box-input'
+        placeholder='0'
+      />
 
       <CoinSelector />
 
     </div>
+
+    {(account === null) ? (
+    <Row justify={'center'}>
+      <WalletSelector />
+    </Row>
+  ) : (
+    <Row justify={'center'}>
+      <Button className='submit-button'>
+        兑换
+      </Button>
+    </Row>
+  )}
 
   </>
 
@@ -101,6 +132,42 @@ function Swap() {
 
 // todo
 function CreatePool() {
+
+  //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
+  const { account, signAndSubmitTransaction } = useWallet();
+
+  const [token1, setToken1] = useState("");
+  const [token2, setToken2] = useState("");
+  const onWriteToken1 = (value: string) => {
+    setToken1(value);
+  }
+  const onWriteToken2 = (value: string) => {
+    setToken2(value);
+  }
+
+  const handleCreatePool = async () => {
+
+    const transaction:InputTransactionData = {
+      data: {
+        function:`${moduleAddress}::router::create_pool`,
+        functionArguments:[token1, token2, false]
+      }
+    }
+  
+    try {
+  
+      const response = await signAndSubmitTransaction(transaction);
+
+      await aptos.waitForTransaction({transactionHash:response.hash});
+      
+    } catch (error) {
+
+      console.log("error",error)
+      
+    };
+
+  };
+
   return (
     <>
 
@@ -112,7 +179,11 @@ function CreatePool() {
 
       <br />
 
-      <input className='box-input'/>
+      <input 
+        className='box-address-input' 
+        onChange={(e) => onWriteToken1(e.target.value)}
+        placeholder='Object<Metadata>'
+      />
 
     </div>
 
@@ -124,9 +195,25 @@ function CreatePool() {
 
       <br />
 
-      <input className='box-input'/>
+      <input 
+        className='box-address-input' 
+        onChange={(e) => onWriteToken2(e.target.value)}
+        placeholder='Object<Metadata>'
+      />
 
     </div>
+
+    {(account === null) ? (
+    <Row justify={'center'}>
+      <WalletSelector />
+    </Row>
+  ) : (
+    <Row justify={'center'}>
+      <Button className='submit-button' onClick={handleCreatePool}>
+        创建
+      </Button>
+    </Row>
+  )}
 
   </>
   );
@@ -134,6 +221,10 @@ function CreatePool() {
 
 // todo
 function AddLiquidity() {
+
+    //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
+    const { account, signAndSubmitTransaction } = useWallet();
+
   return (
     <>
 
@@ -145,7 +236,10 @@ function AddLiquidity() {
 
       <br />
 
-      <input className='box-input'/>
+      <input 
+        className='box-input'
+        placeholder='0'
+      />
 
       <CoinSelector />
       
@@ -159,11 +253,26 @@ function AddLiquidity() {
 
       <br />
 
-      <input className='box-input'/>
+            <input 
+        className='box-input'
+        placeholder='0'
+      />
 
       <CoinSelector />
 
     </div>
+
+    {(account === null) ? (
+    <Row justify={'center'}>
+      <WalletSelector />
+    </Row>
+  ) : (
+    <Row justify={'center'}>
+      <Button className='submit-button'>
+        添加
+      </Button>
+    </Row>
+  )}
 
   </>
   );
@@ -171,6 +280,10 @@ function AddLiquidity() {
 
 // todo
 function RemoveLiquidity() {
+
+    //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
+    const { account, signAndSubmitTransaction } = useWallet();
+
   return (
     <>
 
@@ -182,7 +295,10 @@ function RemoveLiquidity() {
 
       <br />
 
-      <input className='box-input'/>
+      <input 
+        className='box-input'
+        placeholder='0'
+      />
 
       <CoinSelector />
       
@@ -196,21 +312,34 @@ function RemoveLiquidity() {
 
       <br />
 
-      <input className='box-input'/>
+      <input 
+        className='box-input'
+        placeholder='0'
+      />
 
       <CoinSelector />
 
     </div>
 
+    {(account === null) ? (
+    <Row justify={'center'}>
+      <WalletSelector />
+    </Row>
+  ) : (
+    <Row justify={'center'}>
+      <Button className='submit-button'>
+        移除
+      </Button>
+    </Row>
+  )}
+
   </>
   );
 }
 
-export default function UniswapFeature() {
+export default function SwapFeature() {
   // 定义状态来保存当前选择的功能
   const [activeFeature, setActiveFeature] = useState('swap');
-  //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
-  const { account, signAndSubmitTransaction } = useWallet();
 
   // 处理功能切换的函数
   const renderFeature = () => {
@@ -223,22 +352,6 @@ export default function UniswapFeature() {
         return <AddLiquidity />;
       case 'removeLiquidity':
         return <RemoveLiquidity />;
-      default:
-        return <Swap />;
-    }
-  };
-
-  // 切换大按钮上的内容
-  const FeatureText = () => {
-    switch (activeFeature) {
-      case 'swap':
-        return <p>兑换</p>;
-      case 'createPool':
-        return <p>创建</p>;
-      case 'addLiquidity':
-        return <p>添加</p>;
-      case 'removeLiquidity':
-        return <p>移除</p>;
     }
   };
 
@@ -303,18 +416,6 @@ export default function UniswapFeature() {
           <div>
 
             {renderFeature()}
-
-            {(account === null) ? (
-              <Row justify={'center'}>
-                <WalletSelector />
-              </Row>
-            ) : (
-              <Row justify={'center'}>
-                <Button className='submit-button'>
-                  {<FeatureText />}
-                </Button>
-              </Row>
-            )}
 
           </div>
 
