@@ -34,7 +34,7 @@ function CoinSelector() {
   return (
     <>
 
-      <div style={{ position:'relative', left:'280px', bottom:'45px' }}>
+      <div className='coin-selector-div'>
         <Button type="primary" onClick={showModal}>
           {selectedCoin}
         </Button>
@@ -46,7 +46,7 @@ function CoinSelector() {
           onCancel={handleCancel} 
           footer={null}
         >
-          <Input placeholder="搜索币对" style={{ marginBottom: '10px' }} />
+          <Input className='coin-selector-modal-input' placeholder="搜索币对" />
           <List
             dataSource={coinList}
             renderItem={coin => (
@@ -66,65 +66,29 @@ function Swap() {
   return (
     <>
 
-    <div style={{backgroundColor:'#f5f5f5', marginBottom:'3px', height:'120px', borderRadius:'10px'}}>
+    <div className='box'>
 
-      <span 
-        style={{
-          marginLeft:'15px',
-          marginTop:'15px',
-          display: 'inline-block',
-        }}
-      >
+      <span className='box-span'>
       出售
       </span>
 
       <br />
 
-      <input 
-      style={{
-        height:'50px',
-        width:'250px',
-        marginLeft:'15px',
-        marginTop:'5px',
-        fontSize:'40px',
-        backgroundColor:'#f5f5f5',
-        borderWidth:'0',
-        borderColor:'#f5f5f5',
-        outline:'none',
-      }} 
-      />
+      <input className='box-input'/>
 
       <CoinSelector />
 
     </div>
 
-    <div style={{backgroundColor:'#f5f5f5', marginBottom:'3px', height:'120px', borderRadius:'10px'}}>
+    <div className='box' >
 
-      <span 
-        style={{
-          marginLeft:'15px',
-          marginTop:'15px',
-          display: 'inline-block',
-        }}
-      >
+      <span className='box-span'>
       购买
       </span>
 
       <br />
 
-      <input 
-      style={{
-        height:'50px',
-        width:'250px',
-        marginLeft:'15px',
-        marginTop:'5px',
-        fontSize:'40px',
-        backgroundColor:'#f5f5f5',
-        borderWidth:'0',
-        borderColor:'#f5f5f5',
-        outline:'none',
-      }} 
-      />
+      <input className='box-input'/>
 
       <CoinSelector />
 
@@ -140,63 +104,27 @@ function CreatePool() {
   return (
     <>
 
-    <div style={{backgroundColor:'#f5f5f5', marginBottom:'3px', height:'120px', borderRadius:'10px'}}>
+    <div className='box' >
 
-      <span 
-        style={{
-          marginLeft:'15px',
-          marginTop:'15px',
-          display: 'inline-block',
-        }}
-      >
+      <span className='box-span'>
       Token1
       </span>
 
       <br />
 
-      <input 
-      style={{
-        height:'50px',
-        width:'250px',
-        marginLeft:'15px',
-        marginTop:'5px',
-        fontSize:'40px',
-        backgroundColor:'#f5f5f5',
-        borderWidth:'0',
-        borderColor:'#f5f5f5',
-        outline:'none',
-      }} 
-      />
+      <input className='box-input'/>
 
     </div>
 
-    <div style={{backgroundColor:'#f5f5f5', marginBottom:'3px', height:'120px', borderRadius:'10px'}}>
+    <div className='box' >
 
-      <span 
-        style={{
-          marginLeft:'15px',
-          marginTop:'15px',
-          display: 'inline-block',
-        }}
-      >
+      <span className='box-span'>
       Token2
       </span>
 
       <br />
 
-      <input 
-      style={{
-        height:'50px',
-        width:'250px',
-        marginLeft:'15px',
-        marginTop:'5px',
-        fontSize:'40px',
-        backgroundColor:'#f5f5f5',
-        borderWidth:'0',
-        borderColor:'#f5f5f5',
-        outline:'none',
-      }} 
-      />
+      <input className='box-input'/>
 
     </div>
 
@@ -209,65 +137,29 @@ function AddLiquidity() {
   return (
     <>
 
-    <div style={{backgroundColor:'#f5f5f5', marginBottom:'3px', height:'120px', borderRadius:'10px'}}>
+    <div className='box' >
 
-      <span 
-        style={{
-          marginLeft:'15px',
-          marginTop:'15px',
-          display: 'inline-block',
-        }}
-      >
+      <span className='box-span'>
       Token1
       </span>
 
       <br />
 
-      <input 
-      style={{
-        height:'50px',
-        width:'250px',
-        marginLeft:'15px',
-        marginTop:'5px',
-        fontSize:'40px',
-        backgroundColor:'#f5f5f5',
-        borderWidth:'0',
-        borderColor:'#f5f5f5',
-        outline:'none',
-      }} 
-      />
+      <input className='box-input'/>
 
       <CoinSelector />
       
     </div>
 
-    <div style={{backgroundColor:'#f5f5f5', marginBottom:'3px', height:'120px', borderRadius:'10px'}}>
+    <div className='box' >
 
-      <span 
-        style={{
-          marginLeft:'15px',
-          marginTop:'15px',
-          display: 'inline-block',
-        }}
-      >
+      <span className='box-span'>
       Token2
       </span>
 
       <br />
 
-      <input 
-      style={{
-        height:'50px',
-        width:'250px',
-        marginLeft:'15px',
-        marginTop:'5px',
-        fontSize:'40px',
-        backgroundColor:'#f5f5f5',
-        borderWidth:'0',
-        borderColor:'#f5f5f5',
-        outline:'none',
-      }} 
-      />
+      <input className='box-input'/>
 
       <CoinSelector />
 
@@ -282,65 +174,29 @@ function RemoveLiquidity() {
   return (
     <>
 
-    <div style={{backgroundColor:'#f5f5f5', marginBottom:'3px', height:'120px', borderRadius:'10px'}}>
+    <div className='box' >
 
-      <span 
-        style={{
-          marginLeft:'15px',
-          marginTop:'15px',
-          display: 'inline-block',
-        }}
-      >
+      <span className='box-span'>
       Token1
       </span>
 
       <br />
 
-      <input 
-      style={{
-        height:'50px',
-        width:'250px',
-        marginLeft:'15px',
-        marginTop:'5px',
-        fontSize:'40px',
-        backgroundColor:'#f5f5f5',
-        borderWidth:'0',
-        borderColor:'#f5f5f5',
-        outline:'none',
-      }} 
-      />
+      <input className='box-input'/>
 
       <CoinSelector />
       
     </div>
 
-    <div style={{backgroundColor:'#f5f5f5', marginBottom:'3px', height:'120px', borderRadius:'10px'}}>
+    <div className='box' >
 
-      <span 
-        style={{
-          marginLeft:'15px',
-          marginTop:'15px',
-          display: 'inline-block',
-        }}
-      >
+      <span className='box-span'>
       Token2
       </span>
 
       <br />
 
-      <input 
-      style={{
-        height:'50px',
-        width:'250px',
-        marginLeft:'15px',
-        marginTop:'5px',
-        fontSize:'40px',
-        backgroundColor:'#f5f5f5',
-        borderWidth:'0',
-        borderColor:'#f5f5f5',
-        outline:'none',
-      }} 
-      />
+      <input className='box-input'/>
 
       <CoinSelector />
 
@@ -395,64 +251,48 @@ export default function UniswapFeature() {
         <div>
 
           {/* 按钮组 */}
-          <div style={{ marginBottom: '10px' }}>
+          <div className='feature-button-div' >
 
             <Button 
+              className='feature-button'
               onClick={() => setActiveFeature('swap')}
               style={{
-                height:'35px',
-                width:'60px',
-                border:'0px',
-                borderRadius:'17px',
                 backgroundColor: activeFeature === 'swap' ? '#1677ff' : 'white',
                 color: activeFeature === 'swap' ? 'white' : 'black',
-                marginRight:'10px',
               }}
             >
             兑换
             </Button>
 
             <Button 
-            onClick={() => setActiveFeature('createPool')}
-            style={{
-              height:'35px',
-              width:'60px',
-              border:'0px',
-              borderRadius:'17px',
-              backgroundColor: activeFeature === 'createPool' ? '#1677ff' : 'white',
-              color: activeFeature === 'createPool' ? 'white' : 'black',
-              marginRight:'10px',
-            }}
+              className='feature-button'
+              onClick={() => setActiveFeature('createPool')}
+              style={{
+                backgroundColor: activeFeature === 'createPool' ? '#1677ff' : 'white',
+                color: activeFeature === 'createPool' ? 'white' : 'black',
+              }}
             >
             创建
             </Button>
 
             <Button 
-            onClick={() => setActiveFeature('addLiquidity')}
-            style={{
-              height:'35px',
-              width:'60px',
-              border:'0px',
-              borderRadius:'17px',
-              backgroundColor: activeFeature === 'addLiquidity' ? '#1677ff' : 'white',
-              color: activeFeature === 'addLiquidity' ? 'white' : 'black',
-              marginRight:'10px',
-            }}
+              className='feature-button'
+              onClick={() => setActiveFeature('addLiquidity')}
+              style={{
+                backgroundColor: activeFeature === 'addLiquidity' ? '#1677ff' : 'white',
+                color: activeFeature === 'addLiquidity' ? 'white' : 'black',
+              }}
             >
             添加
             </Button>
 
             <Button 
-            onClick={() => setActiveFeature('removeLiquidity')}
-            style={{
-              height:'35px',
-              width:'60px',
-              border:'0px',
-              borderRadius:'17px',
-              backgroundColor: activeFeature === 'removeLiquidity' ? '#1677ff' : 'white',
-              color: activeFeature === 'removeLiquidity' ? 'white' : 'black',
-              marginRight:'10px',
-            }}
+              className='feature-button'
+              onClick={() => setActiveFeature('removeLiquidity')}
+              style={{
+                backgroundColor: activeFeature === 'removeLiquidity' ? '#1677ff' : 'white',
+                color: activeFeature === 'removeLiquidity' ? 'white' : 'black',
+              }}
             >
             移除
             </Button>
@@ -470,14 +310,7 @@ export default function UniswapFeature() {
               </Row>
             ) : (
               <Row justify={'center'}>
-                <Button
-                style={{
-                  height:'50px',
-                  width:'380px',
-                  color:'white',
-                  backgroundColor:'#1677ff',
-                }}
-                >
+                <Button className='submit-button'>
                   {<FeatureText />}
                 </Button>
               </Row>
