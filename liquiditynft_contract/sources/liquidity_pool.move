@@ -1,4 +1,4 @@
-module LiquidityNFT::liquidity_pool {
+module contract::liquidity_pool {
     use aptos_framework::event;
     use aptos_framework::fungible_asset::{
         Self, FungibleAsset, FungibleStore, Metadata,
@@ -26,7 +26,7 @@ module LiquidityNFT::liquidity_pool {
     use aptos_token_objects::token;
     use aptos_token_objects::token::Token;
 
-    friend LiquidityNFT::router;
+    friend contract::router;
 
     const FEE_SCALE: u64 = 10000;
     const LP_TOKEN_DECIMALS: u8 = 6;
@@ -81,6 +81,12 @@ module LiquidityNFT::liquidity_pool {
 
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     struct LiquidityPool has key {
+        token_name_1:String,
+        token_name_2:String,
+        token_symbol_1:String,
+        token_symbol_2:String,
+        token_uri_1:String,
+        token_uri_2:String,
         token_store_1: Object<FungibleStore>,
         token_store_2: Object<FungibleStore>,
         fees_store_1: Object<FungibleStore>,
@@ -331,6 +337,12 @@ module LiquidityNFT::liquidity_pool {
         let lp_token = object::object_from_constructor_ref<Metadata>(pool_constructor_ref);
         fungible_asset::create_store(pool_constructor_ref, lp_token);
         move_to(pool_signer, LiquidityPool {
+            token_name_1: fungible_asset::name(token_1),
+            token_name_2: fungible_asset::name(token_2),
+            token_symbol_1: fungible_asset::symbol(token_1),
+            token_symbol_2: fungible_asset::symbol(token_2),
+            token_uri_1: fungible_asset::icon_uri(token_1),
+            token_uri_2: fungible_asset::icon_uri(token_2),
             token_store_1: create_token_store(pool_signer, token_1),
             token_store_2: create_token_store(pool_signer, token_2),
             fees_store_1: create_token_store(pool_signer, token_1),

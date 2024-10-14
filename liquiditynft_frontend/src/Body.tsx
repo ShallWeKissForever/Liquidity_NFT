@@ -70,7 +70,7 @@ function CoinSelector() {
   );
 }
 
-// 功能组件
+// “兑换”功能组件
 function Swap() {
 
   //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
@@ -130,7 +130,7 @@ function Swap() {
 );
 }
 
-// todo
+// “创建”功能组件
 function CreatePool() {
 
   //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
@@ -219,7 +219,7 @@ function CreatePool() {
   );
 }
 
-// todo
+// “添加”功能组件
 function AddLiquidity() {
 
     //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
@@ -278,7 +278,7 @@ function AddLiquidity() {
   );
 }
 
-// todo
+// “移除”功能组件
 function RemoveLiquidity() {
 
     //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。

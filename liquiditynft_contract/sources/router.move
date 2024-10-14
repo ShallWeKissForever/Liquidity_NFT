@@ -1,10 +1,10 @@
-module LiquidityNFT::router {
+module contract::router {
     use aptos_framework::fungible_asset::{Self, FungibleAsset, Metadata};
     use aptos_framework::object::{Self, Object};
     use aptos_framework::primary_fungible_store;
     use aptos_std::math128;
 
-    use LiquidityNFT::liquidity_pool::{Self, LiquidityPool};
+    use contract::liquidity_pool::{Self, LiquidityPool};
     #[test_only]
     use std::option;
     #[test_only]
@@ -20,7 +20,7 @@ module LiquidityNFT::router {
     #[test_only]
     use aptos_framework::timestamp;
     #[test_only]
-    use LiquidityNFT::liquidity_pool::{initialize};
+    use contract::liquidity_pool::{initialize};
 
     /// Output is less than the desired minimum amount.
     const EINSUFFICIENT_OUTPUT_AMOUNT: u64 = 1;
@@ -288,6 +288,8 @@ module LiquidityNFT::router {
 
         debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object1_metadata));
         debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object2_metadata));
+        debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object1_metadata));
+        debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object2_metadata));
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
 
