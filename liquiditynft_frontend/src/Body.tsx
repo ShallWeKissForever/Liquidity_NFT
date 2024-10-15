@@ -8,7 +8,7 @@ import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
 export default function SwapFeature() {
 
   //合约发布的账户地址
-  const moduleAddress = "0x98eb393f248a291d0aacb3bb2bd8595536eb92eabadbcea5d6cc25bc68946a68";
+  const moduleAddress = "0x948d5dc35420db4e8d68c7134551ba0d54df834339b534328554eadfb014a910";
   //mint测试币地址
   const mintFaAddress = "0x71dfdf10572f2d5ba5a66ccbf6e7a785d201fdb4bda312a870deeec3d8fd2f96";
   //拥有LiquidityPoolConfig资源的资源账户地址
@@ -511,19 +511,47 @@ export default function SwapFeature() {
   // “移除”功能组件
   const RemoveLiquidity = () => {
 
+    const lpTokentokenAmountRef = useRef<HTMLInputElement>(null);
+
+    const handleRemoveLiquidity = async () => {
+
+      const lpTokentokenAmount = lpTokentokenAmountRef.current ? lpTokentokenAmountRef.current.value : "";
+
+      const transactionRemoveLiquidity: InputTransactionData = {
+        data: {
+          function: `${moduleAddress}::router::remove_liquidity_entry`,
+          functionArguments:[selectedCoin1.metadata, selectedCoin2.metadata, false, lpTokentokenAmount, 1, 1, account?.address]
+        }
+      };
+
+      try {
+
+        const responseRemoveLiquidity = await signAndSubmitTransaction(transactionRemoveLiquidity);
+        await aptos.waitForTransaction({transactionHash:responseRemoveLiquidity.hash})
+        
+      } catch (error) {
+        console.log("error",error)
+      }
+
+      //重置输入框
+      if (lpTokentokenAmountRef.current) lpTokentokenAmountRef.current.value = "";
+
+    };
+
     return (
       <>
 
       <div className='box' >
 
         <span className='box-span'>
-        Token1
+        LP Token
         </span>
 
         <br />
 
         <input 
           className='box-input'
+          ref={lpTokentokenAmountRef}
           placeholder='0'
         />
 
@@ -533,29 +561,13 @@ export default function SwapFeature() {
           coinList={filteredCoinListForToken1} 
         />
 
-        
-      </div>
-
-      <div className='box' >
-
-        <span className='box-span'>
-        Token2
-        </span>
-
-        <br />
-
-        <input 
-          className='box-input'
-          placeholder='0'
-        />
-
         <CoinSelector 
           selectedCoin={selectedCoin2} 
           setSelectedCoin={setSelectedCoin2} 
           coinList={filteredCoinListForToken2} 
         />
 
-
+        
       </div>
 
       {(account === null) ? (
@@ -564,7 +576,7 @@ export default function SwapFeature() {
       </Row>
     ) : (
       <Row justify={'center'}>
-        <Button className='submit-button'>
+        <Button className='submit-button' onClick={handleRemoveLiquidity}>
           移除
         </Button>
       </Row>
