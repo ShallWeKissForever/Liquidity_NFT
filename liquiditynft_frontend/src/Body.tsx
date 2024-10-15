@@ -9,6 +9,8 @@ export default function SwapFeature() {
 
   //合约发布的账户地址
   const moduleAddress = "0x98eb393f248a291d0aacb3bb2bd8595536eb92eabadbcea5d6cc25bc68946a68";
+  //mint测试币地址
+  const mintFaAddress = "0x71dfdf10572f2d5ba5a66ccbf6e7a785d201fdb4bda312a870deeec3d8fd2f96";
   //拥有LiquidityPoolConfig资源的资源账户地址
   // const resource_Account_Address = "0x11c78a6c9e5105784f5a380ebc6e4efa71de7c17f0775898f4d57f08470d5251";
 
@@ -56,7 +58,7 @@ export default function SwapFeature() {
     pairTokenMetadata:string 
   }>>([]);
 
-  //在coinSelector中被选中的token
+  //在coinSelector1中被选中的token
   const [selectedCoin1, setSelectedCoin1] = useState<{ 
     name: string; 
     symbol: string; 
@@ -71,6 +73,7 @@ export default function SwapFeature() {
     pairTokenMetadata:"" ,
   })
 
+  //在coinSelector2中被选中的token
   const [selectedCoin2, setSelectedCoin2] = useState<{ 
     name: string; 
     symbol: string; 
@@ -275,7 +278,7 @@ export default function SwapFeature() {
           function:`${moduleAddress}::router::create_pool`,
           functionArguments:[token1, token2, false]
         }
-      }
+      };
     
       try {
     
@@ -346,9 +349,7 @@ export default function SwapFeature() {
         setPools(tempPools);
         
       } catch (error) {
-
         console.log("error",error)
-        
       };
 
     // 重置输入框值
@@ -413,6 +414,36 @@ export default function SwapFeature() {
   // “添加”功能组件
   const AddLiquidity = () => {
 
+    const token1AmountRef = useRef<HTMLInputElement>(null);
+    const token2AmountRef = useRef<HTMLInputElement>(null);
+
+    const handleAddLiquidity = async () => {
+
+      const token1Amount = token1AmountRef.current ? token1AmountRef.current.value : "";
+      const token2Amount = token2AmountRef.current ? token2AmountRef.current.value : "";
+
+      const transactionAddLiquidity: InputTransactionData = {
+        data: {
+          function: `${moduleAddress}::router::add_liquidity_entry`,
+          functionArguments:[selectedCoin1.metadata, selectedCoin2.metadata, false, token1Amount, token2Amount, 1, 1]
+        }
+      };
+
+      try {
+
+        const responseAddLiquidity = await signAndSubmitTransaction(transactionAddLiquidity);
+        await aptos.waitForTransaction({transactionHash:responseAddLiquidity.hash})
+        
+      } catch (error) {
+        console.log("error",error)
+      }
+
+      //重置输入框
+      if (token1AmountRef.current) token1AmountRef.current.value = "";
+      if (token2AmountRef.current) token2AmountRef.current.value = "";
+
+    };
+    
     return (
       <>
 
@@ -426,6 +457,7 @@ export default function SwapFeature() {
 
         <input 
           className='box-input'
+          ref={token1AmountRef}
           placeholder='0'
         />
 
@@ -448,6 +480,7 @@ export default function SwapFeature() {
 
         <input 
           className='box-input'
+          ref={token2AmountRef}
           placeholder='0'
         />
 
@@ -465,7 +498,7 @@ export default function SwapFeature() {
       </Row>
     ) : (
       <Row justify={'center'}>
-        <Button className='submit-button'>
+        <Button className='submit-button' onClick={handleAddLiquidity}>
           添加
         </Button>
       </Row>
@@ -539,6 +572,68 @@ export default function SwapFeature() {
 
     </>
     );
+  };
+
+  const handleMintTestFA = async () => {
+
+    const transactionMintBTC: InputTransactionData = {
+      data: {
+        function: `${mintFaAddress}::launchpad1::mint_fa`,
+        functionArguments:[
+          "0x6184d78efca94412c86a924d76795e2bc7c7185fcc63c425a45a02749e58e731",
+          100000000000
+        ]
+      }
+    };
+
+    const transactionMintAPT: InputTransactionData = {
+      data: {
+        function: `${mintFaAddress}::launchpad1::mint_fa`,
+        functionArguments:[
+          "0xdff567dd9ac79fd8f18cb7150c7c487d59bbec2334b0707a17cc9fafee710e6e",
+          100000000000
+        ]
+      }
+    };
+
+    const transactionMintETH: InputTransactionData = {
+      data: {
+        function: `${mintFaAddress}::launchpad1::mint_fa`,
+        functionArguments:[
+          "0xf4ead8c3e1b47837ddae82e9a58e8e6d3fb719fe538bc71a8476444e8ceb4f3c",
+          100000000000
+        ]
+      }
+    };
+
+    const transactionMintSUI: InputTransactionData = {
+      data: {
+        function: `${mintFaAddress}::launchpad1::mint_fa`,
+        functionArguments:[
+          "0xa945fdeded2e060125f502de64886ce5e7b0849647afa1004dff511b9e990038",
+          100000000000
+        ]
+      }
+    };
+
+    try {
+
+      const responseMintBTC = await signAndSubmitTransaction(transactionMintBTC);
+      await aptos.waitForTransaction({transactionHash:responseMintBTC.hash});
+
+      const responseMintAPT = await signAndSubmitTransaction(transactionMintAPT);
+      await aptos.waitForTransaction({transactionHash:responseMintAPT.hash});
+
+      const responseMintETH = await signAndSubmitTransaction(transactionMintETH);
+      await aptos.waitForTransaction({transactionHash:responseMintETH.hash});
+
+      const responseMintSUI = await signAndSubmitTransaction(transactionMintSUI);
+      await aptos.waitForTransaction({transactionHash:responseMintSUI.hash});
+      
+    } catch (error) {
+      console.log(error);
+    }
+
   };
 
   // 定义状态来保存当前选择的功能
@@ -621,6 +716,9 @@ export default function SwapFeature() {
             {renderFeature()}
 
           </div>
+
+          {/* test only */}
+          <Button className='submit-button' onClick={handleMintTestFA}>Mint</Button>
 
         </div>
 
