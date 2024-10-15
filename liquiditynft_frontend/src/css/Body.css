@@ -10,8 +10,12 @@
     bottom:45px;
 }
 
-.coin-selector-modal-input {
-    margin-bottom: 10px;
+.coin-selector-token-img {
+    width: 20px;
+}
+
+.coin-selector-token-metadata {
+    font-size: 13px;
 }
 
 .box {

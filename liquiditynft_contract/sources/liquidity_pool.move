@@ -81,12 +81,6 @@ module contract::liquidity_pool {
 
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     struct LiquidityPool has key {
-        token_name_1:String,
-        token_name_2:String,
-        token_symbol_1:String,
-        token_symbol_2:String,
-        token_uri_1:String,
-        token_uri_2:String,
         token_store_1: Object<FungibleStore>,
         token_store_2: Object<FungibleStore>,
         fees_store_1: Object<FungibleStore>,
@@ -222,13 +216,7 @@ module contract::liquidity_pool {
     #[view]
     public fun all_pools(): vector<Object<LiquidityPool>> acquires LiquidityPoolConfigs, ResourceAccountCap {
         let all_pools = &safe_liquidity_pool_configs().all_pools;
-        let results = vector[];
-        let len = smart_vector::length(all_pools);
-        let i = 0;
-        while (i < len) {
-            vector::push_back(&mut results, *smart_vector::borrow(all_pools, i));
-            i = i + 1;
-        };
+        let results = smart_vector::to_vector(all_pools);
         results
     }
 
@@ -337,12 +325,6 @@ module contract::liquidity_pool {
         let lp_token = object::object_from_constructor_ref<Metadata>(pool_constructor_ref);
         fungible_asset::create_store(pool_constructor_ref, lp_token);
         move_to(pool_signer, LiquidityPool {
-            token_name_1: fungible_asset::name(token_1),
-            token_name_2: fungible_asset::name(token_2),
-            token_symbol_1: fungible_asset::symbol(token_1),
-            token_symbol_2: fungible_asset::symbol(token_2),
-            token_uri_1: fungible_asset::icon_uri(token_1),
-            token_uri_2: fungible_asset::icon_uri(token_2),
             token_store_1: create_token_store(pool_signer, token_1),
             token_store_2: create_token_store(pool_signer, token_2),
             fees_store_1: create_token_store(pool_signer, token_1),

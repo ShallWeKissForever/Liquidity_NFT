@@ -1,343 +1,546 @@
 import './css/Body.css';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-import {  Col, Row, Button, Input, Modal, List } from 'antd';
+import {  Col, Row, Button, Modal, List } from 'antd';
 import { useWallet, InputTransactionData } from '@aptos-labs/wallet-adapter-react';
 import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
 
-//设置 Aptos 与 testnet 网络交互
-const aptosConfig = new AptosConfig({ network: Network.TESTNET });
-//初始化一个 Aptos 实例
-const aptos = new Aptos(aptosConfig);
+export default function SwapFeature() {
 
-const resource_Account_Address = "0x11c78a6c9e5105784f5a380ebc6e4efa71de7c17f0775898f4d57f08470d5251";
-const moduleAddress = "0x07428b8f770c6455453e2b0bc602553bc4d145a926e41b8de82f2229fa7e8284";
+  //合约发布的账户地址
+  const moduleAddress = "0x98eb393f248a291d0aacb3bb2bd8595536eb92eabadbcea5d6cc25bc68946a68";
+  //拥有LiquidityPoolConfig资源的资源账户地址
+  // const resource_Account_Address = "0x11c78a6c9e5105784f5a380ebc6e4efa71de7c17f0775898f4d57f08470d5251";
 
-const coinList = [
-  { symbol: 'ETH', name: 'Ethereum' },
-  { symbol: 'BTC', name: 'Bitcoin' },
-  { symbol: 'USDT', name: 'Tether' },
-  // 其他币种...
-];
+  //设置 Aptos 与 testnet 网络交互
+  const aptosConfig = new AptosConfig({ network: Network.TESTNET });
+  //初始化一个 Aptos 实例
+  const aptos = new Aptos(aptosConfig);
+  //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
+  const { account, signAndSubmitTransaction } = useWallet();
 
-function CoinSelector() {
-  const [isModalVisible, setIsModalVisible] = useState(false);  // 控制弹窗的显示状态
-  const [selectedCoin, setSelectedCoin] = useState('选择币对');  // 存储选择的币对
-
-  // 显示弹窗
-  const showModal = () => {
-    setIsModalVisible(true);
+  //Pool的结构体
+  type Pool = {
+    token_name_1:string,
+    token_name_2:string,
+    token_symbol_1:string,
+    token_symbol_2:string,
+    token_uri_1:string,
+    token_uri_2:string,
+    token_metadata_1: string,
+    token_metadata_2: string,
   };
 
-  // 隐藏弹窗
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
+  //储存pool的数组
+  const [pools, setPools] = useState<Pool[]>([]);
 
-  // 选择币对
-  const handleSelectCoin = (coin: { symbol: any; name?: string; }) => {
-    setSelectedCoin(coin.symbol);
-    setIsModalVisible(false);  // 选择后关闭弹窗
-  };
+  //储存两个token
+  // const [token1, setToken1] = useState("");
+  // const [token2, setToken2] = useState("");
 
-  return (
-    <>
+  //用于CoinSelector的储存token的list
+  const [coinList, setCoinList] = useState<Array<{ 
+    name: string; 
+    symbol: string; 
+    uri: string; 
+    metadata: string; 
+    pairTokenMetadata:string 
+  }>>([]);
 
+  //用于filter后的CoinSelector的储存token1的去重的list
+  const [filteredCoinListForToken1, setFilteredCoinListForToken1] = useState<Array<{ 
+    name: string; 
+    symbol: string; 
+    uri: string; 
+    metadata: string; 
+    pairTokenMetadata:string 
+  }>>([]);
+
+  //在coinSelector中被选中的token
+  const [selectedCoin1, setSelectedCoin1] = useState<{ 
+    name: string; 
+    symbol: string; 
+    uri: string; 
+    metadata: string; 
+    pairTokenMetadata:string 
+  }>({
+    name: "选择币对",
+    symbol: "", 
+    uri: "", 
+    metadata: "", 
+    pairTokenMetadata:"" ,
+  })
+
+  const [selectedCoin2, setSelectedCoin2] = useState<{ 
+    name: string; 
+    symbol: string; 
+    uri: string; 
+    metadata: string; 
+    pairTokenMetadata:string 
+  }>({
+    name: "选择币对",
+    symbol: "", 
+    uri: "", 
+    metadata: "", 
+    pairTokenMetadata:"" ,
+  })
+
+  // 使用 useEffect 在 pools 更新时更新 coinList
+  useEffect(() => {
+
+    // 使用 Set 来跟踪已出现的 metadata，避免重复
+    const seenMetadata = new Set();
+
+    const coinList = pools.flatMap((pool) => [
+      {
+        name: pool.token_name_1,         // 用 token_name_1 作为 name
+        symbol: pool.token_symbol_1,     // 用 token_symbol_1 作为 symbol
+        uri: pool.token_uri_1,           // 用 token_uri_1 作为 uri
+        metadata: pool.token_metadata_1, // 用 token_metadata_1 作为 metadata
+        pairTokenMetadata: pool.token_metadata_2 // 用 token_metadata_2 作为 pairTokenMetadata
+      },
+      {
+        name: pool.token_name_2,         // 用 token_name_2 作为 name
+        symbol: pool.token_symbol_2,     // 用 token_symbol_2 作为 symbol
+        uri: pool.token_uri_2,           // 用 token_uri_2 作为 uri
+        metadata: pool.token_metadata_2, // 用 token_metadata_2 作为 metadata
+        pairTokenMetadata: pool.token_metadata_1 // 用 token_metadata_1 作为 pairTokenMetadata
+      },
+    ]);
+    const updatedCoinList = coinList.filter((coin) => {
+      // 只在 metadata 没有被见过的情况下保留这个币
+      if (!seenMetadata.has(coin.metadata)) {
+        seenMetadata.add(coin.metadata);
+        return true;
+      }
+      return false;
+    });
+    setCoinList(coinList);
+    setFilteredCoinListForToken1(updatedCoinList);
+  }, [pools]); // 当 pools 发生变化时，更新 coinList
+
+  // 当 selectedCoin1 变化时，重置 selectedCoin2
+  useEffect(() => {
+    setSelectedCoin2({
+      name: '选择币对',
+      symbol: '',
+      uri: '',
+      metadata: '',
+      pairTokenMetadata: '',
+    });
+  }, [selectedCoin1]);
+
+    // 过滤出符合 token1 的 pairTokenMetadata 的 token2 列表
+    const filteredCoinListForToken2 = coinList.filter(
+      (coin) => coin.pairTokenMetadata === selectedCoin1.metadata
+    );
+
+  //选择代币的按钮
+  const CoinSelector = ({
+    selectedCoin,
+    setSelectedCoin,
+    coinList,
+  }: {
+    selectedCoin: { name: string; symbol: string };
+    setSelectedCoin: (coin: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string }) => void;
+    coinList: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string }[];
+  }) => {
+    const [isModalVisible, setIsModalVisible] = useState(false);  // 控制弹窗的显示状态
+  
+    // 显示弹窗
+    const showModal = () => {
+      setIsModalVisible(true);
+    };
+  
+    // 隐藏弹窗
+    const handleCancel = () => {
+      setIsModalVisible(false);
+    };
+  
+    // 选择币对
+    const handleSelectCoin = (coin: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string; }) => {
+      setSelectedCoin(coin);  // 选择的币对传回上层
+      setIsModalVisible(false);  // 选择后关闭弹窗
+    };
+  
+    return (
       <div className='coin-selector-div'>
         <Button type="primary" onClick={showModal}>
-          {selectedCoin}
+          {selectedCoin.name !== '选择币对' ? `${selectedCoin.symbol}` : '选择币对'}
         </Button>
-
+  
         {/* 弹窗显示币对选择 */}
-        <Modal 
-          title="选择币对" 
-          open={isModalVisible} 
-          onCancel={handleCancel} 
-          footer={null}
-        >
-          <Input className='coin-selector-modal-input' placeholder="搜索币对" />
+        <Modal title="选择币对" open={isModalVisible} onCancel={handleCancel} footer={null}>
           <List
             dataSource={coinList}
             renderItem={coin => (
               <List.Item onClick={() => handleSelectCoin(coin)}>
+                <img className='coin-selector-token-img' src={coin.uri} alt={coin.symbol} />
                 {coin.name} ({coin.symbol})
+                <br />
+                <p className='coin-selector-token-metadata'>{coin.metadata}</p>
               </List.Item>
             )}
           />
         </Modal>
       </div>
-    </>
-  );
-}
-
-// “兑换”功能组件
-function Swap() {
-
-  //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
-  const { account, signAndSubmitTransaction } = useWallet();
-
-  return (
-    <>
-
-    <div className='box'>
-
-      <span className='box-span'>
-      出售
-      </span>
-
-      <br />
-
-      <input 
-        className='box-input'
-        placeholder='0'
-      />
-
-      <CoinSelector />
-
-    </div>
-
-    <div className='box' >
-
-      <span className='box-span'>
-      购买
-      </span>
-
-      <br />
-
-      <input 
-        className='box-input'
-        placeholder='0'
-      />
-
-      <CoinSelector />
-
-    </div>
-
-    {(account === null) ? (
-    <Row justify={'center'}>
-      <WalletSelector />
-    </Row>
-  ) : (
-    <Row justify={'center'}>
-      <Button className='submit-button'>
-        兑换
-      </Button>
-    </Row>
-  )}
-
-  </>
-
-);
-}
-
-// “创建”功能组件
-function CreatePool() {
-
-  //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
-  const { account, signAndSubmitTransaction } = useWallet();
-
-  const [token1, setToken1] = useState("");
-  const [token2, setToken2] = useState("");
-  const onWriteToken1 = (value: string) => {
-    setToken1(value);
-  }
-  const onWriteToken2 = (value: string) => {
-    setToken2(value);
-  }
-
-  const handleCreatePool = async () => {
-
-    const transaction:InputTransactionData = {
-      data: {
-        function:`${moduleAddress}::router::create_pool`,
-        functionArguments:[token1, token2, false]
-      }
-    }
-  
-    try {
-  
-      const response = await signAndSubmitTransaction(transaction);
-
-      await aptos.waitForTransaction({transactionHash:response.hash});
-      
-    } catch (error) {
-
-      console.log("error",error)
-      
-    };
-
+    );
   };
 
-  return (
-    <>
+  // “兑换”功能组件
+  const Swap = () => {
 
-    <div className='box' >
+    return (
+      <>
 
-      <span className='box-span'>
-      Token1
-      </span>
+        <div className='box'>
 
-      <br />
+          <span className='box-span'>
+          出售
+          </span>
 
-      <input 
-        className='box-address-input' 
-        onChange={(e) => onWriteToken1(e.target.value)}
-        placeholder='Object<Metadata>'
-      />
+          <br />
 
-    </div>
+          <input 
+            className='box-input'
+            placeholder='0'
+          />
 
-    <div className='box' >
+          <CoinSelector 
+            selectedCoin={selectedCoin1} 
+            setSelectedCoin={setSelectedCoin1} 
+            coinList={filteredCoinListForToken1} 
+          />
 
-      <span className='box-span'>
-      Token2
-      </span>
+        </div>
 
-      <br />
+        <div className='box' >
 
-      <input 
-        className='box-address-input' 
-        onChange={(e) => onWriteToken2(e.target.value)}
-        placeholder='Object<Metadata>'
-      />
+          <span className='box-span'>
+          购买
+          </span>
 
-    </div>
+          <br />
 
-    {(account === null) ? (
-    <Row justify={'center'}>
-      <WalletSelector />
-    </Row>
-  ) : (
-    <Row justify={'center'}>
-      <Button className='submit-button' onClick={handleCreatePool}>
-        创建
-      </Button>
-    </Row>
-  )}
+          <input 
+            className='box-input'
+            placeholder='0'
+          />
 
-  </>
-  );
-}
+        <CoinSelector 
+          selectedCoin={selectedCoin2} 
+          setSelectedCoin={setSelectedCoin2} 
+          coinList={filteredCoinListForToken2} 
+        />
 
-// “添加”功能组件
-function AddLiquidity() {
+        </div>
 
-    //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
-    const { account, signAndSubmitTransaction } = useWallet();
+        {(account === null) ? (
+          <Row justify={'center'}>
+            <WalletSelector />
+          </Row>
+        ) : (
+          <Row justify={'center'}>
+            <Button className='submit-button'>
+              兑换
+            </Button>
+          </Row>
+        )}
 
-  return (
-    <>
+      </>
 
-    <div className='box' >
+    );
+  };
 
-      <span className='box-span'>
-      Token1
-      </span>
+  // “创建”功能组件
+  const CreatePool = () => {
 
-      <br />
+    // const onWriteToken1 = (value: string) => {
+    //   setToken1(value);
+    // }
+    // const onWriteToken2 = (value: string) => {
+    //   setToken2(value);
+    // }
 
-      <input 
-        className='box-input'
-        placeholder='0'
-      />
+    const token1Ref = useRef<HTMLInputElement>(null);  // 使用 useRef 来控制输入框
+    const token2Ref = useRef<HTMLInputElement>(null);
 
-      <CoinSelector />
-      
-    </div>
+    const handleCreatePool = async () => {
 
-    <div className='box' >
+      const token1 = token1Ref.current ? token1Ref.current.value : "";  // 获取输入框的值
+      const token2 = token2Ref.current ? token2Ref.current.value : "";
 
-      <span className='box-span'>
-      Token2
-      </span>
+      const transactionCreatePool:InputTransactionData = {
+        data: {
+          function:`${moduleAddress}::router::create_pool`,
+          functionArguments:[token1, token2, false]
+        }
+      }
+    
+      try {
+    
+        const responseCreatePool = await signAndSubmitTransaction(transactionCreatePool);
+        await aptos.waitForTransaction({transactionHash:responseCreatePool.hash});
 
-      <br />
+        const returnGetToken1Name = await aptos.view({
+          payload: {
+            function: "0x1::fungible_asset::name",
+            typeArguments: ["0x1::fungible_asset::Metadata"],
+            functionArguments: [token1],
+          }
+        })
+        
+        const returnGetToken2Name = await aptos.view({
+          payload: {
+            function: "0x1::fungible_asset::name",
+            typeArguments: ["0x1::fungible_asset::Metadata"],
+            functionArguments: [token2],
+          }
+        });
 
-            <input 
-        className='box-input'
-        placeholder='0'
-      />
+        const returnGetToken1Symbol = await aptos.view({
+          payload: {
+            function: "0x1::fungible_asset::symbol",
+            typeArguments: ["0x1::fungible_asset::Metadata"],
+            functionArguments: [token1],
+          }
+        });
 
-      <CoinSelector />
+        const returnGetToken2Symbol = await aptos.view({
+          payload: {
+            function: "0x1::fungible_asset::symbol",
+            typeArguments: ["0x1::fungible_asset::Metadata"],
+            functionArguments: [token2],
+          }
+        });
 
-    </div>
+        const returnGetToken1Uri = await aptos.view({
+          payload: {
+            function: "0x1::fungible_asset::icon_uri",
+            typeArguments: ["0x1::fungible_asset::Metadata"],
+            functionArguments: [token1],
+          }
+        });
 
-    {(account === null) ? (
-    <Row justify={'center'}>
-      <WalletSelector />
-    </Row>
-  ) : (
-    <Row justify={'center'}>
-      <Button className='submit-button'>
-        添加
-      </Button>
-    </Row>
-  )}
+        const returnGetToken2Uri = await aptos.view({
+          payload: {
+            function: "0x1::fungible_asset::icon_uri",
+            typeArguments: ["0x1::fungible_asset::Metadata"],
+            functionArguments: [token2],
+          }
+        });
 
-  </>
-  );
-}
+        const newPool : Pool = {
+          token_name_1:`${returnGetToken1Name[0]}`,
+          token_name_2:`${returnGetToken2Name[0]}`,
+          token_symbol_1:`${returnGetToken1Symbol[0]}`,
+          token_symbol_2:`${returnGetToken2Symbol[0]}`,
+          token_uri_1:`${returnGetToken1Uri[0]}`,
+          token_uri_2:`${returnGetToken2Uri[0]}`,
+          token_metadata_1: `${token1}`,
+          token_metadata_2: `${token2}`,
+        }
 
-// “移除”功能组件
-function RemoveLiquidity() {
+        const tempPools = [...pools];
+        tempPools.push(newPool);
+        setPools(tempPools);
+        
+      } catch (error) {
 
-    //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
-    const { account, signAndSubmitTransaction } = useWallet();
+        console.log("error",error)
+        
+      };
 
-  return (
-    <>
+    // 重置输入框值
+    if (token1Ref.current) token1Ref.current.value = "";
+    if (token2Ref.current) token2Ref.current.value = "";
 
-    <div className='box' >
+    };
 
-      <span className='box-span'>
-      Token1
-      </span>
+    return (
+      <>
 
-      <br />
+      <div className='box' >
 
-      <input 
-        className='box-input'
-        placeholder='0'
-      />
+        <span className='box-span'>
+        Token1
+        </span>
 
-      <CoinSelector />
-      
-    </div>
+        <br />
 
-    <div className='box' >
+        <input 
+          className='box-address-input' 
+          ref={token1Ref} // 使用 useRef 绑定输入框
+          // onChange={(e) => onWriteToken1(e.target.value)}
+          placeholder='Object<Metadata>'
+        />
 
-      <span className='box-span'>
-      Token2
-      </span>
+      </div>
 
-      <br />
+      <div className='box' >
 
-      <input 
-        className='box-input'
-        placeholder='0'
-      />
+        <span className='box-span'>
+        Token2
+        </span>
 
-      <CoinSelector />
+        <br />
 
-    </div>
+        <input 
+          className='box-address-input' 
+          ref={token2Ref} // 使用 useRef 绑定输入框
+          // onChange={(e) => onWriteToken2(e.target.value)}
+          placeholder='Object<Metadata>'
+        />
 
-    {(account === null) ? (
-    <Row justify={'center'}>
-      <WalletSelector />
-    </Row>
-  ) : (
-    <Row justify={'center'}>
-      <Button className='submit-button'>
-        移除
-      </Button>
-    </Row>
-  )}
+      </div>
 
-  </>
-  );
-}
+      {(account === null) ? (
+      <Row justify={'center'}>
+        <WalletSelector />
+      </Row>
+    ) : (
+      <Row justify={'center'}>
+        <Button className='submit-button' onClick={handleCreatePool}>
+          创建
+        </Button>
+      </Row>
+    )}
 
-export default function SwapFeature() {
+    </>
+    );
+  };
+
+  // “添加”功能组件
+  const AddLiquidity = () => {
+
+    return (
+      <>
+
+      <div className='box' >
+
+        <span className='box-span'>
+        Token1
+        </span>
+
+        <br />
+
+        <input 
+          className='box-input'
+          placeholder='0'
+        />
+
+        <CoinSelector 
+          selectedCoin={selectedCoin1} 
+          setSelectedCoin={setSelectedCoin1} 
+          coinList={filteredCoinListForToken1} 
+        />
+
+        
+      </div>
+
+      <div className='box' >
+
+        <span className='box-span'>
+        Token2
+        </span>
+
+        <br />
+
+        <input 
+          className='box-input'
+          placeholder='0'
+        />
+
+        <CoinSelector 
+          selectedCoin={selectedCoin2} 
+          setSelectedCoin={setSelectedCoin2} 
+          coinList={filteredCoinListForToken2} 
+        />
+
+      </div>
+
+      {(account === null) ? (
+      <Row justify={'center'}>
+        <WalletSelector />
+      </Row>
+    ) : (
+      <Row justify={'center'}>
+        <Button className='submit-button'>
+          添加
+        </Button>
+      </Row>
+    )}
+
+    </>
+    );
+  };
+
+  // “移除”功能组件
+  const RemoveLiquidity = () => {
+
+    return (
+      <>
+
+      <div className='box' >
+
+        <span className='box-span'>
+        Token1
+        </span>
+
+        <br />
+
+        <input 
+          className='box-input'
+          placeholder='0'
+        />
+
+        <CoinSelector 
+          selectedCoin={selectedCoin1} 
+          setSelectedCoin={setSelectedCoin1} 
+          coinList={filteredCoinListForToken1} 
+        />
+
+        
+      </div>
+
+      <div className='box' >
+
+        <span className='box-span'>
+        Token2
+        </span>
+
+        <br />
+
+        <input 
+          className='box-input'
+          placeholder='0'
+        />
+
+        <CoinSelector 
+          selectedCoin={selectedCoin2} 
+          setSelectedCoin={setSelectedCoin2} 
+          coinList={filteredCoinListForToken2} 
+        />
+
+
+      </div>
+
+      {(account === null) ? (
+      <Row justify={'center'}>
+        <WalletSelector />
+      </Row>
+    ) : (
+      <Row justify={'center'}>
+        <Button className='submit-button'>
+          移除
+        </Button>
+      </Row>
+    )}
+
+    </>
+    );
+  };
+
   // 定义状态来保存当前选择的功能
   const [activeFeature, setActiveFeature] = useState('swap');
 

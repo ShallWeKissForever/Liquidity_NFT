@@ -12,6 +12,8 @@ module contract::router {
     #[test_only]
     use std::signer::address_of;
     #[test_only]
+    use std::string;
+    #[test_only]
     use std::string::utf8;
     #[test_only]
     use aptos_std::debug;
@@ -296,6 +298,10 @@ module contract::router {
         initialize(&deployer);
 
         create_pool(object1_metadata, object2_metadata, false);
+
+        debug::print(&liquidity_pool::all_pools());
+        debug::print(&fungible_asset::name<Metadata>(object1_metadata));
+        debug::print(&fungible_asset::name<Metadata>(object2_metadata));
 
         add_liquidity_entry(
             &user1,

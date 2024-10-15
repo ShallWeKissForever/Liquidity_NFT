@@ -4,9 +4,14 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-my_address = "_"
-contract = "0xb7265a57ba9c4dd6aea592a829ee9a399db321a9e9d0030e72e8aed8b47d6cbe"
-deployer = "0x858fe9f13a9ef753da81edc94f6bae527015be3b19a972d736835a45e1d3f3c7"
+
+#deploy-object
+contract = "_"
+
+#test
+#contract = "0xb7265a57ba9c4dd6aea592a829ee9a399db321a9e9d0030e72e8aed8b47d6cbe"
+
+deployer = "0xfa94993d85bb18eb928b25a5570294117135000ba46aaee1d3da4e9fc8a132d4"
 
 [dev-addresses]
 
