@@ -193,6 +193,32 @@ export default function SwapFeature() {
   // “兑换”功能组件
   const Swap = () => {
 
+    const [sellTokenAmount, setSellTokenAmount] = useState("");
+
+    const onWriteSellTokenAmount = (value: string) => {
+      setSellTokenAmount(value);
+    }
+
+    const handleSwap = async () => {
+
+      const transactionSwap: InputTransactionData = {
+        data: {
+          function: `${moduleAddress}::router::swap_entry`,
+          functionArguments: [sellTokenAmount, 1, selectedCoin1.metadata, selectedCoin2.metadata, false, account?.address]
+        }
+      }
+
+      try {
+
+        const responseSwap = await signAndSubmitTransaction(transactionSwap);
+        await aptos.waitForTransaction({transactionHash:responseSwap.hash})
+        
+      } catch (error) {
+        console.log(error);
+      }
+
+    };
+
     return (
       <>
 
@@ -206,6 +232,7 @@ export default function SwapFeature() {
 
           <input 
             className='box-input'
+            onChange={(e) => onWriteSellTokenAmount(e.target.value)}
             placeholder='0'
           />
 
@@ -244,7 +271,7 @@ export default function SwapFeature() {
           </Row>
         ) : (
           <Row justify={'center'}>
-            <Button className='submit-button'>
+            <Button className='submit-button' onClick={handleSwap}>
               兑换
             </Button>
           </Row>

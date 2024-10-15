@@ -1041,51 +1041,7 @@ module contract::liquidity_pool {
 
         let (fees, ltp) = lp_nft_get_fees_and_plt(lp, pool);
 
-        if (ltp >= 50) {
-
-            if (fees >= 10000){
-                token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(BLOCK_OF_DIAMOND));
-                return
-            };
-
-            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(DIAMOND));
-
-        } else if (ltp >= 37) {
-
-            if (fees >= 10000){
-                token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(BLOCK_OF_EMERALD));
-                return
-            };
-
-            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(EMERALD));
-
-        } else if (ltp >= 25) {
-
-            if (fees >= 10000){
-                token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(BLOCK_OF_GOLD));
-                return
-            };
-
-            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(GOLD));
-
-        } else if (ltp >= 12) {
-
-            if (fees >= 10000){
-                token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(BLOCK_OF_IRON));
-                return
-            };
-
-            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(IRON));
-
-        } else {
-
-            if (fees >= 10000){
-                token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(BLOCK_OF_COAL));
-                return
-            };
-
-            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(COAL));
-        };
+        lp_nft_update_uri(token_address, (fees as u256), ltp);
 
     }
 
