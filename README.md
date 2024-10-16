@@ -17,55 +17,61 @@
 
 1.铸造要使用的FA
 
-我们先[铸造](https://explorer.aptoslabs.com/account/0x71dfdf10572f2d5ba5a66ccbf6e7a785d201fdb4bda312a870deeec3d8fd2f96/modules/run/launchpad1?network=testnet)两种FA各1000个用于提供流动性和进行swap
+我们先点击Mint铸造测试用的FA用于接下来要进行的操作
 
 decimal = 6
-- FA1_Metadata: 0x7f2bf107ba43b8f16332aa88d43713b811dc24f4abc8c68bb73ac44613559476
-- FA2_Metadata: 0x1c71da02f726fa948d0d790d215401020a701ee5e1968b8329a2fcdb032315ad
+- FA1  BTC  0x6184d78efca94412c86a924d76795e2bc7c7185fcc63c425a45a02749e58e731
+- FA2  APT  0xdff567dd9ac79fd8f18cb7150c7c487d59bbec2334b0707a17cc9fafee710e6e
+- FA3  ETH  0xf4ead8c3e1b47837ddae82e9a58e8e6d3fb719fe538bc71a8476444e8ceb4f3c
+- FA4  SUI  0xa945fdeded2e060125f502de64886ce5e7b0849647afa1004dff511b9e990038
 
-![image](https://github.com/user-attachments/assets/f273e62a-dc4b-403a-acf1-d9337871ae50)
-
-![image](https://github.com/user-attachments/assets/23d88364-f2c1-4f4c-b089-480383f286cc)
+![image](https://github.com/user-attachments/assets/4239216a-41d0-4c4f-8cf2-373079d5a998)
 
 2.创建流动性池
 
-用这两个FA的Metadata创建流动性池，稳定币选项填false
+用APT和ETH这两个FA的Metadata创建流动性池
 
-![image](https://github.com/user-attachments/assets/e0c5fde5-b971-429c-908b-2c7b059260a7)
+![image](https://github.com/user-attachments/assets/866b5ee1-c67c-4452-b550-c9e91961616f)
 
 3. 添加流动性
 
-填入两种FA的Metadata来确定流动性池，稳定币选项是false，两种代币分别添加100个，以及两种代币分别的期望最小添加数（这是为了保护LP，避免因添加比例不同或其他计算因素导致的添加数量过少）为了方便演示我们填1
+可以通过弹窗来选择要进行操作的Token
 
-![image](https://github.com/user-attachments/assets/1fc1ff06-b0b8-478b-a103-6294dd77e5e3)
+![image](https://github.com/user-attachments/assets/cc2a0d5a-42a3-44f6-8bd1-395ac18176db)
+![image](https://github.com/user-attachments/assets/7947f088-8b41-453e-bb50-bd82ccb2f9e7)
 
 我们减少了对应数量的FA，并获得了 LP Token和 LP NFT
 
-![image](https://github.com/user-attachments/assets/586b8326-fdfe-4fb8-b8e5-0291b24e059a)
+![image](https://github.com/user-attachments/assets/ee1d2357-8522-4390-a640-cb4459f67228)
 
 4. 用另一个账户添加流动性
 
-切换到另一个账户，这次两种代币分别添加75个，可以看到，由于 LP Token 持有的份额不同，NFT的样式也是不一样的
+切换到另一个账户并添加流动性，可以看到，由于 LP Token 持有的份额不同，NFT的样式也是不一样的
 
-![image](https://github.com/user-attachments/assets/5113f157-1497-4b0c-9a64-029a403324ab)
+![image](https://github.com/user-attachments/assets/33185ea6-19ef-4bc5-8550-10f2d9ea07f2)
+![image](https://github.com/user-attachments/assets/e3754265-193d-4e5b-b37c-abee6f3aed27)
+![image](https://github.com/user-attachments/assets/73e331ab-8337-4fc1-a468-898866e62214)
+
 
 5. 进行swap
 
-填入要进行swap的数量100，期望最小收到代币的值1，源代币Metadata，目标代币Metadata，稳定币选项false，接收人地址
+填入要进行swap的数量
 
-![image](https://github.com/user-attachments/assets/555722f8-f27a-45c9-b919-30f8696a3b2c)
+![image](https://github.com/user-attachments/assets/a90c01ad-cd36-445f-a898-046d3f269b12)
 
 继续进行swap使LP的手续费快速累积，当可提取的手续费达到一定阈值的时候，NFT的样式也会改变（你可以一眼看出你获得的手续费已经积累了很多了）
 
-![image](https://github.com/user-attachments/assets/94c8533c-4239-4981-a999-4376d2ca7859)
+![image](https://github.com/user-attachments/assets/051c3be3-e31b-41b6-bd81-9d885465570a)
+![image](https://github.com/user-attachments/assets/67da0414-b6e1-4ccf-9ffb-b01817c4a5a6)
 
 6. 移除流动性
 
 移除所有的 LP Token
 
-![image](https://github.com/user-attachments/assets/517bffaf-b6dc-4f7a-a987-e40f89f0f034)
+![image](https://github.com/user-attachments/assets/088dc819-ed79-4354-a724-e6fb73d7abe3)
+
 
 LP Token为0时，LP NFT 也被销毁了
 
-![image](https://github.com/user-attachments/assets/94eb1496-2db3-4760-9dc9-439df8df77f2)
+![image](https://github.com/user-attachments/assets/32114a97-b7c5-4025-9957-bac9409335a5)
 
