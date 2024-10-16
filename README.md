@@ -49,8 +49,8 @@ decimal = 6
 切换到另一个账户并添加流动性，可以看到，由于 LP Token 持有的份额不同，NFT的样式也是不一样的
 
 ![image](https://github.com/user-attachments/assets/33185ea6-19ef-4bc5-8550-10f2d9ea07f2)
-![image](https://github.com/user-attachments/assets/e3754265-193d-4e5b-b37c-abee6f3aed27)
-![image](https://github.com/user-attachments/assets/73e331ab-8337-4fc1-a468-898866e62214)
+![image](https://github.com/user-attachments/assets/8cef67a2-e34d-4a25-b102-88ed281da1ae)
+
 
 
 5. 进行swap
@@ -61,8 +61,8 @@ decimal = 6
 
 继续进行swap使LP的手续费快速累积，当可提取的手续费达到一定阈值的时候，NFT的样式也会改变（你可以一眼看出你获得的手续费已经积累了很多了）
 
-![image](https://github.com/user-attachments/assets/051c3be3-e31b-41b6-bd81-9d885465570a)
-![image](https://github.com/user-attachments/assets/67da0414-b6e1-4ccf-9ffb-b01817c4a5a6)
+![image](https://github.com/user-attachments/assets/8d46b024-b8a3-4bc9-a253-fc78748dc1da)
+
 
 6. 移除流动性
 
