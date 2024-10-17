@@ -14,12 +14,14 @@
     "@aptos-labs/wallet-adapter-ant-design": "^3.0.14",
     "@aptos-labs/wallet-adapter-react": "^3.7.0",
     "antd": "^5.21.2",
+    "lodash.debounce": "^4.0.8",
     "petra-plugin-wallet-adapter": "^0.4.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.2",

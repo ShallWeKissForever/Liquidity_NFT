@@ -4,18 +4,58 @@
     background-color: #1677ff;
 }
 
+.coin-selector-row {
+    display: flex;
+    align-items: center; /* 垂直居中对齐 */
+    gap: 10px; /* 两列之间的间距 */
+}
+
+.coin-selector-image-column {
+    flex: 0 0 auto; /* 确保图片列大小固定 */
+}
+
+.coin-selector-info-column {
+    flex: 1; /* 让信息列占据剩余空间 */
+    display: flex;
+    flex-direction: column; /* 垂直排列 span 元素 */
+    justify-content: center; /* 垂直居中信息列 */
+}
+
+.coin-selector-button-container {
+    display: flex;         /*使用flexbox布局 */
+    flex-direction: column; /* 设置为列方向，元素垂直排列 */
+    gap: 5px;              /* 两个 CoinSelector 组件之间的垂直间距 */
+}
+
+.coin-selector-button-container > :first-child {
+    margin-top: -10px; /* 通过负 margin 将第一个元素上移 */
+}
+
 .coin-selector-div {
     position:relative; 
     left:280px; 
     bottom:45px;
 }
 
-.coin-selector-token-img {
-    width: 20px;
+.coin-selector-button {
+    width: 75px;
 }
 
+.coin-selector-token-img-on-button {
+    width: 20px;
+    border-radius: 10px;
+}
+
+.coin-selector-token-img {
+    width: 30px;
+    border-radius: 15px;
+}
+
+.coin-selector-token-name-symbol {
+    font-size: large;
+}
 .coin-selector-token-metadata {
-    font-size: 13px;
+    font-size: 12.5px;
 }
 
 .box {
@@ -41,6 +81,10 @@
     border-width:0;
     border-color:#f5f5f5;
     outline:none;
+}
+
+.display-buy-token-amount {
+    color: #757575;
 }
 
 .box-address-input {

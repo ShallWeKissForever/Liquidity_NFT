@@ -8,11 +8,9 @@ import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
 export default function SwapFeature() {
 
   //合约发布的账户地址
-  const moduleAddress = "0x948d5dc35420db4e8d68c7134551ba0d54df834339b534328554eadfb014a910";
+  const moduleAddress = "0x04f8ff19a639b856ba5d82ea00de9dd5d4144cbef2ea3f5536febe4d525b55d1";
   //mint测试币地址
   const mintFaAddress = "0x71dfdf10572f2d5ba5a66ccbf6e7a785d201fdb4bda312a870deeec3d8fd2f96";
-  //拥有LiquidityPoolConfig资源的资源账户地址
-  // const resource_Account_Address = "0x11c78a6c9e5105784f5a380ebc6e4efa71de7c17f0775898f4d57f08470d5251";
 
   //设置 Aptos 与 testnet 网络交互
   const aptosConfig = new AptosConfig({ network: Network.TESTNET });
@@ -35,10 +33,6 @@ export default function SwapFeature() {
 
   //储存pool的数组
   const [pools, setPools] = useState<Pool[]>([]);
-
-  //储存两个token
-  // const [token1, setToken1] = useState("");
-  // const [token2, setToken2] = useState("");
 
   //用于CoinSelector的储存token的list
   const [coinList, setCoinList] = useState<Array<{ 
@@ -144,7 +138,7 @@ export default function SwapFeature() {
     setSelectedCoin,
     coinList,
   }: {
-    selectedCoin: { name: string; symbol: string };
+    selectedCoin: { name: string; symbol: string; uri: string };
     setSelectedCoin: (coin: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string }) => void;
     coinList: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string }[];
   }) => {
@@ -168,20 +162,30 @@ export default function SwapFeature() {
   
     return (
       <div className='coin-selector-div'>
-        <Button type="primary" onClick={showModal}>
+        <Button className='coin-selector-button' type="primary" onClick={showModal}>
+          {selectedCoin.name !== '选择币对' ? 
+            <img className='coin-selector-token-img-on-button' src={selectedCoin.uri} alt={selectedCoin.symbol} /> : 
+            ''}
           {selectedCoin.name !== '选择币对' ? `${selectedCoin.symbol}` : '选择币对'}
         </Button>
-  
+
         {/* 弹窗显示币对选择 */}
         <Modal title="选择币对" open={isModalVisible} onCancel={handleCancel} footer={null}>
           <List
             dataSource={coinList}
             renderItem={coin => (
               <List.Item onClick={() => handleSelectCoin(coin)}>
-                <img className='coin-selector-token-img' src={coin.uri} alt={coin.symbol} />
-                {coin.name} ({coin.symbol})
-                <br />
-                <p className='coin-selector-token-metadata'>{coin.metadata}</p>
+
+                <div className="coin-selector-row">
+                    <div className="coin-selector-image-column">
+                      <img className="coin-selector-token-img" src={coin.uri} alt={coin.symbol} />
+                    </div>
+                    <div className="coin-selector-info-column">
+                      <span className="coin-selector-token-name-symbol">{coin.name} ({coin.symbol})</span>
+                      <span className="coin-selector-token-metadata">{coin.metadata}</span>
+                    </div>
+                </div>
+
               </List.Item>
             )}
           />
@@ -192,105 +196,125 @@ export default function SwapFeature() {
 
   // “兑换”功能组件
   const Swap = () => {
-
     const [sellTokenAmount, setSellTokenAmount] = useState("");
-
+    const [buyTokenAmount, setBuyTokenAmount] = useState("");
+  
+    // 用于存储之前获取的金额的缓存
+    const amountCache = useRef<{ [key: string]: string }>({});
+  
     const onWriteSellTokenAmount = (value: string) => {
       setSellTokenAmount(value);
-    }
-
-    const handleSwap = async () => {
-
-      const transactionSwap: InputTransactionData = {
-        data: {
-          function: `${moduleAddress}::router::swap_entry`,
-          functionArguments: [sellTokenAmount, 1, selectedCoin1.metadata, selectedCoin2.metadata, false, account?.address]
-        }
+    };
+  
+    const calculateAndSetBuyTokenAmount = async () => {
+      if (!sellTokenAmount || !selectedCoin1 || !selectedCoin2) return; // 确保有数据后才调用
+  
+      // 根据sellTokenAmount和选择的币种生成唯一的缓存键
+      const cacheKey = `${sellTokenAmount}-${selectedCoin1.metadata}-${selectedCoin2.metadata}`;
+  
+      if (amountCache.current[cacheKey]) {
+        // 如果有缓存金额，则直接使用缓存
+        setBuyTokenAmount(amountCache.current[cacheKey]);
+        return;
       }
-
+  
       try {
-
-        const responseSwap = await signAndSubmitTransaction(transactionSwap);
-        await aptos.waitForTransaction({transactionHash:responseSwap.hash})
-        
+        const returnGetAmount = await aptos.view({
+          payload: {
+            function: `${moduleAddress}::router::get_amount_out`,
+            typeArguments: [],
+            functionArguments: [sellTokenAmount, selectedCoin1.metadata, selectedCoin2.metadata],
+          },
+        });
+  
+        const amountOut = `${returnGetAmount[0]}`;
+        amountCache.current[cacheKey] = amountOut; // 缓存结果
+        setBuyTokenAmount(amountOut);
       } catch (error) {
         console.log(error);
       }
-
     };
-
+  
+    // 监听sellTokenAmount变化并计算buyTokenAmount
+    useEffect(() => {
+      if (sellTokenAmount === "") {
+        setBuyTokenAmount("");
+      } else {
+        setBuyTokenAmount("0"); // 在获取数据时设置为0
+        calculateAndSetBuyTokenAmount();
+      }
+    }, [sellTokenAmount, selectedCoin1, selectedCoin2]); // 添加依赖项
+  
+    const handleSwap = async () => {
+      const transactionSwap: InputTransactionData = {
+        data: {
+          function: `${moduleAddress}::router::swap_entry`,
+          functionArguments: [
+            sellTokenAmount,
+            1,
+            selectedCoin1.metadata,
+            selectedCoin2.metadata,
+            false,
+            account?.address,
+          ],
+        },
+      };
+  
+      try {
+        const responseSwap = await signAndSubmitTransaction(transactionSwap);
+        await aptos.waitForTransaction({ transactionHash: responseSwap.hash });
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  
     return (
       <>
-
-        <div className='box'>
-
-          <span className='box-span'>
-          出售
-          </span>
-
+        <div className="box">
+          <span className="box-span">出售</span>
           <br />
-
-          <input 
-            className='box-input'
+          <input
+            className="box-input"
             onChange={(e) => onWriteSellTokenAmount(e.target.value)}
-            placeholder='0'
+            placeholder="0"
           />
-
-          <CoinSelector 
-            selectedCoin={selectedCoin1} 
-            setSelectedCoin={setSelectedCoin1} 
-            coinList={filteredCoinListForToken1} 
+          <CoinSelector
+            selectedCoin={selectedCoin1}
+            setSelectedCoin={setSelectedCoin1}
+            coinList={filteredCoinListForToken1}
           />
-
         </div>
-
-        <div className='box' >
-
-          <span className='box-span'>
-          购买
-          </span>
-
+  
+        <div className="box">
+          <span className="box-span">购买</span>
           <br />
-
-          <input 
-            className='box-input'
-            placeholder='0'
+          <input className="box-input display-buy-token-amount" value={buyTokenAmount} placeholder="0" readOnly />
+          <CoinSelector
+            selectedCoin={selectedCoin2}
+            setSelectedCoin={setSelectedCoin2}
+            coinList={filteredCoinListForToken2}
           />
-
-        <CoinSelector 
-          selectedCoin={selectedCoin2} 
-          setSelectedCoin={setSelectedCoin2} 
-          coinList={filteredCoinListForToken2} 
-        />
-
         </div>
-
-        {(account === null) ? (
-          <Row justify={'center'}>
+  
+        {account === null ? (
+          <Row justify={"center"}>
             <WalletSelector />
           </Row>
         ) : (
-          <Row justify={'center'}>
-            <Button className='submit-button' onClick={handleSwap}>
+          <Row justify={"center"}>
+            <Button className="submit-button" onClick={handleSwap}>
               兑换
             </Button>
           </Row>
         )}
-
       </>
-
     );
   };
+  
+  
 
   // “创建”功能组件
   const CreatePool = () => {
-
-    // const onWriteToken1 = (value: string) => {
-    //   setToken1(value);
-    // }
-    // const onWriteToken2 = (value: string) => {
-    //   setToken2(value);
-    // }
 
     const token1Ref = useRef<HTMLInputElement>(null);  // 使用 useRef 来控制输入框
     const token2Ref = useRef<HTMLInputElement>(null);
@@ -388,53 +412,50 @@ export default function SwapFeature() {
     return (
       <>
 
-      <div className='box' >
+        <div className='box' >
 
-        <span className='box-span'>
-        Token1
-        </span>
+          <span className='box-span'>
+          Token1
+          </span>
 
-        <br />
+          <br />
 
-        <input 
-          className='box-address-input' 
-          ref={token1Ref} // 使用 useRef 绑定输入框
-          // onChange={(e) => onWriteToken1(e.target.value)}
-          placeholder='Object<Metadata>'
-        />
+          <input 
+            className='box-address-input' 
+            ref={token1Ref} // 使用 useRef 绑定输入框
+            placeholder='Object<Metadata>'
+          />
 
-      </div>
+        </div>
 
-      <div className='box' >
+        <div className='box' >
 
-        <span className='box-span'>
-        Token2
-        </span>
+          <span className='box-span'>
+          Token2
+          </span>
 
-        <br />
+          <br />
 
-        <input 
-          className='box-address-input' 
-          ref={token2Ref} // 使用 useRef 绑定输入框
-          // onChange={(e) => onWriteToken2(e.target.value)}
-          placeholder='Object<Metadata>'
-        />
+          <input 
+            className='box-address-input' 
+            ref={token2Ref} // 使用 useRef 绑定输入框
+            placeholder='Object<Metadata>'
+          />
 
-      </div>
+        </div>
 
-      {(account === null) ? (
-      <Row justify={'center'}>
-        <WalletSelector />
-      </Row>
-    ) : (
-      <Row justify={'center'}>
-        <Button className='submit-button' onClick={handleCreatePool}>
-          创建
-        </Button>
-      </Row>
-    )}
-
-    </>
+        {(account === null) ? (
+          <Row justify={'center'}>
+            <WalletSelector />
+          </Row>
+        ) : (
+          <Row justify={'center'}>
+            <Button className='submit-button' onClick={handleCreatePool}>
+              创建
+            </Button>
+          </Row>
+        )}
+      </>
     );
   };
 
@@ -582,18 +603,21 @@ export default function SwapFeature() {
           placeholder='0'
         />
 
-        <CoinSelector 
-          selectedCoin={selectedCoin1} 
-          setSelectedCoin={setSelectedCoin1} 
-          coinList={filteredCoinListForToken1} 
-        />
+        <div className="coin-selector-button-container">
 
-        <CoinSelector 
-          selectedCoin={selectedCoin2} 
-          setSelectedCoin={setSelectedCoin2} 
-          coinList={filteredCoinListForToken2} 
-        />
+          <CoinSelector 
+            selectedCoin={selectedCoin1} 
+            setSelectedCoin={setSelectedCoin1} 
+            coinList={filteredCoinListForToken1} 
+          />
 
+          <CoinSelector 
+            selectedCoin={selectedCoin2} 
+            setSelectedCoin={setSelectedCoin2} 
+            coinList={filteredCoinListForToken2} 
+          />
+
+        </div>
         
       </div>
 
@@ -757,8 +781,9 @@ export default function SwapFeature() {
           </div>
 
           {/* test only */}
-          <Button className='submit-button' onClick={handleMintTestFA}>Mint</Button>
-
+          <Row justify={'center'}>
+            <Button className='submit-button' onClick={handleMintTestFA}>MintTestToken</Button>
+          </Row> 
         </div>
 
       </Col>
