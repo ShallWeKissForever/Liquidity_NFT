@@ -28,6 +28,8 @@ module contract::liquidity_pool {
 
     friend contract::router;
 
+    //todo 当往不同的池子添加流动性时，不会发对应池子的NFT
+
     const FEE_SCALE: u64 = 10000;
     const LP_TOKEN_DECIMALS: u8 = 6;
     const MINIMUM_LIQUIDITY: u64 = 1000;

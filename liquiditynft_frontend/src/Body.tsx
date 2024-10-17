@@ -60,7 +60,7 @@ export default function SwapFeature() {
     metadata: string; 
     pairTokenMetadata:string 
   }>({
-    name: "选择币对",
+    name: "选择代币",
     symbol: "", 
     uri: "", 
     metadata: "", 
@@ -75,7 +75,7 @@ export default function SwapFeature() {
     metadata: string; 
     pairTokenMetadata:string 
   }>({
-    name: "选择币对",
+    name: "选择代币",
     symbol: "", 
     uri: "", 
     metadata: "", 
@@ -119,7 +119,7 @@ export default function SwapFeature() {
   // 当 selectedCoin1 变化时，重置 selectedCoin2
   useEffect(() => {
     setSelectedCoin2({
-      name: '选择币对',
+      name: '选择代币',
       symbol: '',
       uri: '',
       metadata: '',
@@ -154,7 +154,7 @@ export default function SwapFeature() {
       setIsModalVisible(false);
     };
   
-    // 选择币对
+    // 选择代币
     const handleSelectCoin = (coin: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string; }) => {
       setSelectedCoin(coin);  // 选择的币对传回上层
       setIsModalVisible(false);  // 选择后关闭弹窗
@@ -163,26 +163,26 @@ export default function SwapFeature() {
     return (
       <div className='coin-selector-div'>
         <Button className='coin-selector-button' type="primary" onClick={showModal}>
-          {selectedCoin.name !== '选择币对' ? 
-            <img className='coin-selector-token-img-on-button' src={selectedCoin.uri} alt={selectedCoin.symbol} /> : 
+          {selectedCoin.name !== '选择代币' ? 
+            <img className='coin-selector-button-token-img' src={selectedCoin.uri} alt={selectedCoin.symbol} /> : 
             ''}
-          {selectedCoin.name !== '选择币对' ? `${selectedCoin.symbol}` : '选择币对'}
+          {selectedCoin.name !== '选择代币' ? `${selectedCoin.symbol}` : '选择代币'}
         </Button>
 
         {/* 弹窗显示币对选择 */}
-        <Modal title="选择币对" open={isModalVisible} onCancel={handleCancel} footer={null}>
+        <Modal title="选择代币" open={isModalVisible} onCancel={handleCancel} footer={null}>
           <List
             dataSource={coinList}
             renderItem={coin => (
               <List.Item onClick={() => handleSelectCoin(coin)}>
 
-                <div className="coin-selector-row">
-                    <div className="coin-selector-image-column">
-                      <img className="coin-selector-token-img" src={coin.uri} alt={coin.symbol} />
+                <div className="coin-selector-modal-row">
+                    <div className="coin-selector-modal-image-column">
+                      <img className="coin-selector-modal-token-img" src={coin.uri} alt={coin.symbol} />
                     </div>
-                    <div className="coin-selector-info-column">
-                      <span className="coin-selector-token-name-symbol">{coin.name} ({coin.symbol})</span>
-                      <span className="coin-selector-token-metadata">{coin.metadata}</span>
+                    <div className="coin-selector-modal-info-column">
+                      <span className="coin-selector-modal-token-name-symbol">{coin.name} ({coin.symbol})</span>
+                      <span className="coin-selector-modal-token-metadata">{coin.metadata}</span>
                     </div>
                 </div>
 
