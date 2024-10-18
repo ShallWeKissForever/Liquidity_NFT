@@ -4,7 +4,7 @@ module contract::liquidity_pool {
         Self, FungibleAsset, FungibleStore, Metadata,
         BurnRef, MintRef, TransferRef,
     };
-    use aptos_framework::object::{Self, ConstructorRef, Object, generate_signer};
+    use aptos_framework::object::{Self, ConstructorRef, Object, generate_signer, ExtendRef, };
     use aptos_framework::primary_fungible_store;
     use aptos_std::comparator;
     use aptos_std::math128;
@@ -22,13 +22,10 @@ module contract::liquidity_pool {
     use aptos_std::string_utils;
     use aptos_framework::account::{create_resource_account, SignerCapability, create_signer_with_capability};
     use aptos_framework::timestamp;
-    use aptos_token_objects::collection::MutatorRef;
     use aptos_token_objects::token;
     use aptos_token_objects::token::Token;
 
     friend contract::router;
-
-    //todo 当往不同的池子添加流动性时，不会发对应池子的NFT
 
     const FEE_SCALE: u64 = 10000;
     const LP_TOKEN_DECIMALS: u8 = 6;
@@ -87,10 +84,11 @@ module contract::liquidity_pool {
         token_store_2: Object<FungibleStore>,
         fees_store_1: Object<FungibleStore>,
         fees_store_2: Object<FungibleStore>,
-        lp_token_refs: LPTokenRefs,
         swap_fee_bps: u64,
         nft_total_supply: u64,
         is_stable: bool,
+        extend_ref: ExtendRef,
+        lp_token_refs: LPTokenRefs,
     }
 
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
@@ -105,10 +103,6 @@ module contract::liquidity_pool {
 
     struct ResourceAccountCap has key {
         signer_cap: SignerCapability,
-    }
-
-    struct CollectionRef has key, store {
-        mutator_ref: MutatorRef,
     }
 
     struct NFTRefs has key {
@@ -164,7 +158,7 @@ module contract::liquidity_pool {
         lp_token_percentage: u256,
     }
 
-    public entry fun initialize(deployer: &signer) acquires ResourceAccountCap {
+    public entry fun initialize(deployer: &signer) {
 
         let ( resource_account_signer, resource_account_signer_cap ) =  create_resource_account(
             deployer, b"LiquidityNFT");
@@ -184,25 +178,6 @@ module contract::liquidity_pool {
             volatile_fee_bps: 20, // 0.2%
         });
 
-        let collection_cref = collection::create_unlimited_collection(
-            &get_signer(),
-            string::utf8(b"LP's NFT"),
-            string::utf8(b"LiquidityNFT"),
-            option::none(),
-            string::utf8(b"")
-        );
-
-        let mutator_ref = collection::generate_mutator_ref(&collection_cref);
-
-        move_to(&get_signer(), CollectionRef {
-            mutator_ref,
-        });
-
-        let minted = smart_table::new<address, address>();
-
-        move_to(&get_signer(), MintedAddressStore {
-            minted,
-        });
     }
 
     #[view]
@@ -242,7 +217,7 @@ module contract::liquidity_pool {
     }
 
     #[view]
-    public fun liquidity_pool_address(
+    public fun  liquidity_pool_address(
         token_1: Object<Metadata>,
         token_2: Object<Metadata>,
         is_stable: bool,
@@ -322,19 +297,35 @@ module contract::liquidity_pool {
         // 1. Represent the liquidity pool that LPs and users interact with to add/remove liquidity and swap tokens.
         // 2. Represent the metadata of the LP token.
         // 3. Store the min liquidity that will be locked into the pool when initial liquidity is added.
-        let pool_constructor_ref = create_lp_token(token_1, token_2, is_stable);
+        let pool_constructor_ref = create_lp_token(token_1, token_2, is_stable);    //actually it's a object_cref
         let pool_signer = &object::generate_signer(pool_constructor_ref);
         let lp_token = object::object_from_constructor_ref<Metadata>(pool_constructor_ref);
         fungible_asset::create_store(pool_constructor_ref, lp_token);
+
+        collection::create_unlimited_collection(
+            pool_signer,
+            lp_nft_name(token_1, token_2),
+            lp_nft_name(token_1, token_2),
+            option::none(),
+            string::utf8(b"")
+        );
+
+        let minted = smart_table::new<address, address>();
+
+        move_to(pool_signer, MintedAddressStore {
+            minted,
+        });
+
         move_to(pool_signer, LiquidityPool {
             token_store_1: create_token_store(pool_signer, token_1),
             token_store_2: create_token_store(pool_signer, token_2),
             fees_store_1: create_token_store(pool_signer, token_1),
             fees_store_2: create_token_store(pool_signer, token_2),
-            lp_token_refs: create_lp_token_refs(pool_constructor_ref),
             swap_fee_bps: if (is_stable) { configs.stable_fee_bps } else { configs.volatile_fee_bps },
             nft_total_supply: 0,
             is_stable,
+            extend_ref: object::generate_extend_ref(pool_constructor_ref),
+            lp_token_refs: create_lp_token_refs(pool_constructor_ref),
         });
         move_to(pool_signer, FeesAccounting {
             total_fees_1: 0,
@@ -432,7 +423,7 @@ module contract::liquidity_pool {
         fungible_asset_1: FungibleAsset,
         fungible_asset_2: FungibleAsset,
         is_stable: bool,
-    ) acquires FeesAccounting, LiquidityPool, ResourceAccountCap, MintedAddressStore, NFTProperties, NFTRefs {
+    ) acquires FeesAccounting, LiquidityPool, ResourceAccountCap, MintedAddressStore, NFTProperties, NFTRefs, LiquidityPoolConfigs {
         let token_1 = fungible_asset::metadata_from_asset(&fungible_asset_1);
         let token_2 = fungible_asset::metadata_from_asset(&fungible_asset_2);
         let token_1_copy = *&token_1;
@@ -485,7 +476,7 @@ module contract::liquidity_pool {
 
         let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp, pool);
 
-        let  isMinted = &mut borrow_global_mut<MintedAddressStore>(address_of(&get_signer())).minted;
+        let  isMinted = &mut borrow_global_mut<MintedAddressStore>(liquidity_pool_address(token_1, token_2, is_stable)).minted;
         if (*smart_table::borrow_mut_with_default( isMinted, address_of(lp), @0x0) == @0x0) {
 
             lp_nft_mint(
@@ -497,11 +488,11 @@ module contract::liquidity_pool {
                 lp_token_percentage
             );
 
-            lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage);
+            lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage, pool);
 
         } else {
 
-            lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage);
+            lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage, pool);
 
         };
     }
@@ -571,17 +562,15 @@ module contract::liquidity_pool {
         let lp_balance = (primary_fungible_store::balance(address_of(lp), pool) as u128);
         if (lp_balance == 0) {
 
-            lp_nft_burn(lp);
+            lp_nft_burn(lp, pool);
 
         } else {
 
             let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp, pool);
 
-            lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage);
+            lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage, pool);
 
         };
-
-
 
         // Withdraw and return the redeemed tokens.
         let swap_signer = &get_signer();
@@ -716,7 +705,7 @@ module contract::liquidity_pool {
             lp_token_constructor_ref,
             option::none(),
             token_name,
-            string::utf8(b"LP"),
+            string::utf8(b"LPT"),
             LP_TOKEN_DECIMALS,
             string::utf8(b""),
             string::utf8(b"")
@@ -757,7 +746,15 @@ module contract::liquidity_pool {
     }
 
     inline fun lp_token_name(token_1: Object<Metadata>, token_2: Object<Metadata>): String {
-        let token_symbol = string::utf8(b"LP-");
+        let token_symbol = string::utf8(b"LP-Token-");
+        string::append(&mut token_symbol, fungible_asset::symbol(token_1));
+        string::append_utf8(&mut token_symbol, b"-");
+        string::append(&mut token_symbol, fungible_asset::symbol(token_2));
+        token_symbol
+    }
+
+    inline fun lp_nft_name(token_1: Object<Metadata>, token_2: Object<Metadata>): String {
+        let token_symbol = string::utf8(b"LP-NFT-");
         string::append(&mut token_symbol, fungible_asset::symbol(token_1));
         string::append_utf8(&mut token_symbol, b"-");
         string::append(&mut token_symbol, fungible_asset::symbol(token_2));
@@ -865,21 +862,25 @@ module contract::liquidity_pool {
         lp: &signer,
         token_1: Object<Metadata>,
         token_2: Object<Metadata>,
-        is_stable: bool, fees: u256,
+        is_stable: bool,
+        fees: u256,
         lp_token_percentage: u256
     ) acquires ResourceAccountCap, MintedAddressStore, LiquidityPool {
 
         let pool = liquidity_pool(token_1, token_2, is_stable);
         let pool_data = liquidity_pool_data_mut(&pool);
-        let name = string::utf8(b"LP NFT");
+        let pool_extend_ref = &pool_data.extend_ref;
+        let pool_signer = &object::generate_signer_for_extending(pool_extend_ref);
+        let collection_name = lp_nft_name(token_1, token_2);
+        let nft_name = *&collection_name;
         pool_data.nft_total_supply = pool_data.nft_total_supply + 1;
-        append( &mut name , string_utils::to_string(&pool_data.nft_total_supply));
+        append( &mut nft_name , string_utils::to_string(&pool_data.nft_total_supply));
 
         let nft_cref = token::create_named_token(
-            &get_signer(),
-            string::utf8(b"LiquidityNFT"),
-            string::utf8(b"LP NFT"),
-            name,
+            pool_signer,
+            collection_name,
+            nft_name,
+            nft_name,
             option::none(),
             string::utf8(COAL),
         );
@@ -889,7 +890,7 @@ module contract::liquidity_pool {
         let token_signer = generate_signer(&nft_cref);
         let token_address = address_of(&token_signer);
 
-        let  isMinted = &mut borrow_global_mut<MintedAddressStore>(address_of(&get_signer())).minted;
+        let  isMinted = &mut borrow_global_mut<MintedAddressStore>(liquidity_pool_address(token_1, token_2, is_stable)).minted;
 
         smart_table::upsert(isMinted, address_of(lp), token_address);
 
@@ -913,7 +914,7 @@ module contract::liquidity_pool {
         );
 
         object::transfer(
-            &get_signer(),
+            pool_signer,
             object::object_from_constructor_ref<Token>(&nft_cref),
             signer::address_of(lp),
         );
@@ -923,10 +924,13 @@ module contract::liquidity_pool {
     fun lp_nft_update_properties(
         lp: &signer,
         new_fees: u256,
-        new_ltp: u256
-    ) acquires NFTProperties, MintedAddressStore, ResourceAccountCap, NFTRefs {
+        new_ltp: u256,
+        pool: Object<LiquidityPool>
+    ) acquires NFTProperties, MintedAddressStore, NFTRefs {
 
-        let table = &borrow_global<MintedAddressStore>( address_of(&get_signer() ) ).minted;
+        let pool_address = object::object_address(&pool);
+
+        let table = &borrow_global<MintedAddressStore>( pool_address ).minted;
         let token_address = smart_table::borrow( table, address_of(lp) );
         let token_properties =  borrow_global_mut<NFTProperties>(*token_address);
 
@@ -947,10 +951,14 @@ module contract::liquidity_pool {
         );
     }
 
-    public(friend) fun lp_nft_burn(lp: &signer) acquires NFTRefs, NFTProperties, MintedAddressStore, ResourceAccountCap {
+    public(friend) fun lp_nft_burn(lp: &signer, pool: Object<LiquidityPool>) acquires NFTRefs, NFTProperties, MintedAddressStore {
+
+        let pool_address = object::object_address(&pool);
+
+        let  isMinted = &mut borrow_global_mut<MintedAddressStore>(pool_address).minted;
 
         let token_address = *smart_table::borrow(
-            &borrow_global<MintedAddressStore>(address_of(&get_signer())).minted,
+            isMinted,
             address_of(lp)
         );
 
@@ -967,8 +975,6 @@ module contract::liquidity_pool {
         } = move_from<NFTProperties>(token_address);
 
         token::burn(burn_ref);
-
-        let  isMinted = &mut borrow_global_mut<MintedAddressStore>(address_of(&get_signer())).minted;
 
         smart_table::remove(isMinted, address_of(lp));
 

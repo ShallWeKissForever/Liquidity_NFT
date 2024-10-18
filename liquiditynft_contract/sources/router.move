@@ -12,8 +12,6 @@ module contract::router {
     #[test_only]
     use std::signer::address_of;
     #[test_only]
-    use std::string;
-    #[test_only]
     use std::string::utf8;
     #[test_only]
     use aptos_std::debug;
@@ -288,10 +286,10 @@ module contract::router {
         primary_fungible_store::mint(&token1_mint_ref, signer::address_of(&user2), 1000_000_000);
         primary_fungible_store::mint(&token2_mint_ref, signer::address_of(&user2), 1000_000_000);
 
-        debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object1_metadata));
-        debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object2_metadata));
-        debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object1_metadata));
-        debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object2_metadata));
+        // debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object1_metadata));
+        // debug::print(&primary_fungible_store::balance(signer::address_of(&user1), object2_metadata));
+        // debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object1_metadata));
+        // debug::print(&primary_fungible_store::balance(signer::address_of(&user2), object2_metadata));
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -299,9 +297,9 @@ module contract::router {
 
         create_pool(object1_metadata, object2_metadata, false);
 
-        debug::print(&liquidity_pool::all_pools());
-        debug::print(&fungible_asset::name<Metadata>(object1_metadata));
-        debug::print(&fungible_asset::name<Metadata>(object2_metadata));
+        // debug::print(&liquidity_pool::all_pools());
+        // debug::print(&fungible_asset::name<Metadata>(object1_metadata));
+        // debug::print(&fungible_asset::name<Metadata>(object2_metadata));
 
         add_liquidity_entry(
             &user1,
