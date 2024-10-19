@@ -24,7 +24,6 @@ module contract::liquidity_pool {
     use aptos_framework::timestamp;
     use aptos_token_objects::token;
     use aptos_token_objects::token::Token;
-
     friend contract::router;
 
     const FEE_SCALE: u64 = 10000;
@@ -80,6 +79,8 @@ module contract::liquidity_pool {
 
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     struct LiquidityPool has key {
+        token_1: Object<Metadata>,
+        token_2: Object<Metadata>,
         token_store_1: Object<FungibleStore>,
         token_store_2: Object<FungibleStore>,
         fees_store_1: Object<FungibleStore>,
@@ -193,8 +194,7 @@ module contract::liquidity_pool {
     #[view]
     public fun all_pools(): vector<Object<LiquidityPool>> acquires LiquidityPoolConfigs, ResourceAccountCap {
         let all_pools = &safe_liquidity_pool_configs().all_pools;
-        let results = smart_vector::to_vector(all_pools);
-        results
+        smart_vector::to_vector(all_pools)
     }
 
     #[view]
@@ -317,6 +317,8 @@ module contract::liquidity_pool {
         });
 
         move_to(pool_signer, LiquidityPool {
+            token_1: token_1,
+            token_2: token_2,
             token_store_1: create_token_store(pool_signer, token_1),
             token_store_2: create_token_store(pool_signer, token_2),
             fees_store_1: create_token_store(pool_signer, token_1),

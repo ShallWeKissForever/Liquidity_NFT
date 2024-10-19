@@ -11,7 +11,7 @@ contract = "_"
 #test
 #contract = "0xb7265a57ba9c4dd6aea592a829ee9a399db321a9e9d0030e72e8aed8b47d6cbe"
 
-deployer = "0x73add1a89085ca112ff8775d26a07f7352980048f634236f0375c6c07fb46973"
+deployer = "0xeb73c29dfea4f17f4d1559208d57687b32e9a3589da19041bdba3e1966082907"
 
 [dev-addresses]
 

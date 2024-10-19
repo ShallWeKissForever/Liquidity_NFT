@@ -8,7 +8,7 @@ import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
 export default function SwapFeature() {
 
   //合约发布的账户地址
-  const moduleAddress = "0x8b34cfd92bf26bcdb773d03d021f6cfac4923fff231e4e964513c3ffc49abb12";
+  const moduleAddress = "0xd7f5fe958addd81d4e88275de434cd7df42661df337109ea1a99a8f5040ee63c";
   //mint测试币地址
   const mintFaAddress = "0x71dfdf10572f2d5ba5a66ccbf6e7a785d201fdb4bda312a870deeec3d8fd2f96";
 
@@ -33,6 +33,9 @@ export default function SwapFeature() {
 
   //储存pool的数组
   const [pools, setPools] = useState<Pool[]>([]);
+
+  //标记拉取pool列表是否已完成
+  const [isgetCoinListDone, setIsgetCoinListDone] = useState<boolean>();
 
   //用于CoinSelector的储存token的list
   const [coinList, setCoinList] = useState<Array<{ 
@@ -82,6 +85,14 @@ export default function SwapFeature() {
     pairTokenMetadata:"" ,
   })
 
+  // 定义状态来保存当前选择的功能
+  const [activeFeature, setActiveFeature] = useState('swap');
+  
+  // 在组件挂载时执行 getCoinList
+  useEffect(() => {
+    getCoinList();
+  }, []); // 空依赖数组表示只在组件挂载时执行一次
+
   // 使用 useEffect 在 pools 更新时更新 coinList
   useEffect(() => {
 
@@ -104,6 +115,7 @@ export default function SwapFeature() {
         pairTokenMetadata: pool.token_metadata_1 // 用 token_metadata_1 作为 pairTokenMetadata
       },
     ]);
+    //去掉重复token的 token1 列表
     const updatedCoinList = coinList.filter((coin) => {
       // 只在 metadata 没有被见过的情况下保留这个币
       if (!seenMetadata.has(coin.metadata)) {
@@ -114,7 +126,7 @@ export default function SwapFeature() {
     });
     setCoinList(coinList);
     setFilteredCoinListForToken1(updatedCoinList);
-  }, [pools]); // 当 pools 发生变化时，更新 coinList
+  }, [isgetCoinListDone]); // 当 拉取pools 完成时，更新 coinList
 
   // 当 selectedCoin1 变化时，重置 selectedCoin2
   useEffect(() => {
@@ -127,10 +139,119 @@ export default function SwapFeature() {
     });
   }, [selectedCoin1]);
 
-    // 过滤出符合 token1 的 pairTokenMetadata 的 token2 列表
-    const filteredCoinListForToken2 = coinList.filter(
-      (coin) => coin.pairTokenMetadata === selectedCoin1.metadata
-    );
+  // 过滤出符合 token1 的 pairTokenMetadata 的 token2 列表
+  const filteredCoinListForToken2 = coinList.filter(
+    (coin) => coin.pairTokenMetadata === selectedCoin1.metadata
+  );
+
+  // 从链上获取币对
+  const getCoinList = async () => {
+    try {
+      const returnGetPools: Array<Array<{ inner: string }>> = await aptos.view({
+        payload: {
+          function: `${moduleAddress}::liquidity_pool::all_pools`,
+          typeArguments: [],
+          functionArguments: [],
+        },
+      });
+
+      // 提取每个对象中的 inner 字段
+      const metadataStrings = returnGetPools.flatMap(poolArray =>
+        poolArray.map(pool => pool.inner)
+      );
+
+      console.log(metadataStrings);
+
+      // 在这里定义一个临时数组
+      const tempPools = [];
+
+      for (const address of metadataStrings) {
+        const returnGetPoolResource = await aptos.getAccountResource({
+          accountAddress: address,
+          resourceType: `${moduleAddress}::liquidity_pool::LiquidityPool`
+        });
+
+        const token1 = (returnGetPoolResource as any).token_1.inner;
+        const token2 = (returnGetPoolResource as any).token_2.inner;
+
+        // 依次获取 token 的名称、符号和 URI
+        const [returnGetToken1Name, returnGetToken2Name] = await Promise.all([
+          aptos.view({
+            payload: {
+              function: "0x1::fungible_asset::name",
+              typeArguments: ["0x1::fungible_asset::Metadata"],
+              functionArguments: [token1],
+            }
+          }),
+          aptos.view({
+            payload: {
+              function: "0x1::fungible_asset::name",
+              typeArguments: ["0x1::fungible_asset::Metadata"],
+              functionArguments: [token2],
+            }
+          })
+        ]);
+
+        const [returnGetToken1Symbol, returnGetToken2Symbol] = await Promise.all([
+          aptos.view({
+            payload: {
+              function: "0x1::fungible_asset::symbol",
+              typeArguments: ["0x1::fungible_asset::Metadata"],
+              functionArguments: [token1],
+            }
+          }),
+          aptos.view({
+            payload: {
+              function: "0x1::fungible_asset::symbol",
+              typeArguments: ["0x1::fungible_asset::Metadata"],
+              functionArguments: [token2],
+            }
+          })
+        ]);
+
+        const [returnGetToken1Uri, returnGetToken2Uri] = await Promise.all([
+          aptos.view({
+            payload: {
+              function: "0x1::fungible_asset::icon_uri",
+              typeArguments: ["0x1::fungible_asset::Metadata"],
+              functionArguments: [token1],
+            }
+          }),
+          aptos.view({
+            payload: {
+              function: "0x1::fungible_asset::icon_uri",
+              typeArguments: ["0x1::fungible_asset::Metadata"],
+              functionArguments: [token2],
+            }
+          })
+        ]);
+
+        const newPool: Pool = {
+          token_name_1: `${returnGetToken1Name[0]}`,
+          token_name_2: `${returnGetToken2Name[0]}`,
+          token_symbol_1: `${returnGetToken1Symbol[0]}`,
+          token_symbol_2: `${returnGetToken2Symbol[0]}`,
+          token_uri_1: `${returnGetToken1Uri[0]}`,
+          token_uri_2: `${returnGetToken2Uri[0]}`,
+          token_metadata_1: `${token1}`,
+          token_metadata_2: `${token2}`,
+        };
+
+        // 将新池添加到临时数组中
+        tempPools.push(newPool);
+      }
+
+      // 在所有池处理完后一次性更新状态
+      setPools(tempPools);
+
+      // 标记拉取pools完成
+      setIsgetCoinListDone(true);
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   //选择代币的按钮
   const CoinSelector = ({
@@ -335,77 +456,17 @@ export default function SwapFeature() {
     
         const responseCreatePool = await signAndSubmitTransaction(transactionCreatePool);
         await aptos.waitForTransaction({transactionHash:responseCreatePool.hash});
-
-        const returnGetToken1Name = await aptos.view({
-          payload: {
-            function: "0x1::fungible_asset::name",
-            typeArguments: ["0x1::fungible_asset::Metadata"],
-            functionArguments: [token1],
-          }
-        })
-        
-        const returnGetToken2Name = await aptos.view({
-          payload: {
-            function: "0x1::fungible_asset::name",
-            typeArguments: ["0x1::fungible_asset::Metadata"],
-            functionArguments: [token2],
-          }
-        });
-
-        const returnGetToken1Symbol = await aptos.view({
-          payload: {
-            function: "0x1::fungible_asset::symbol",
-            typeArguments: ["0x1::fungible_asset::Metadata"],
-            functionArguments: [token1],
-          }
-        });
-
-        const returnGetToken2Symbol = await aptos.view({
-          payload: {
-            function: "0x1::fungible_asset::symbol",
-            typeArguments: ["0x1::fungible_asset::Metadata"],
-            functionArguments: [token2],
-          }
-        });
-
-        const returnGetToken1Uri = await aptos.view({
-          payload: {
-            function: "0x1::fungible_asset::icon_uri",
-            typeArguments: ["0x1::fungible_asset::Metadata"],
-            functionArguments: [token1],
-          }
-        });
-
-        const returnGetToken2Uri = await aptos.view({
-          payload: {
-            function: "0x1::fungible_asset::icon_uri",
-            typeArguments: ["0x1::fungible_asset::Metadata"],
-            functionArguments: [token2],
-          }
-        });
-
-        const newPool : Pool = {
-          token_name_1:`${returnGetToken1Name[0]}`,
-          token_name_2:`${returnGetToken2Name[0]}`,
-          token_symbol_1:`${returnGetToken1Symbol[0]}`,
-          token_symbol_2:`${returnGetToken2Symbol[0]}`,
-          token_uri_1:`${returnGetToken1Uri[0]}`,
-          token_uri_2:`${returnGetToken2Uri[0]}`,
-          token_metadata_1: `${token1}`,
-          token_metadata_2: `${token2}`,
-        }
-
-        const tempPools = [...pools];
-        tempPools.push(newPool);
-        setPools(tempPools);
         
       } catch (error) {
         console.log("error",error)
       };
 
-    // 重置输入框值
-    if (token1Ref.current) token1Ref.current.value = "";
-    if (token2Ref.current) token2Ref.current.value = "";
+      // 重置输入框值
+      if (token1Ref.current) token1Ref.current.value = "";
+      if (token2Ref.current) token2Ref.current.value = "";
+
+      //拉取Coin列表
+      getCoinList();
 
     };
 
@@ -699,8 +760,6 @@ export default function SwapFeature() {
 
   };
 
-  // 定义状态来保存当前选择的功能
-  const [activeFeature, setActiveFeature] = useState('swap');
 
   // 处理功能切换的函数
   const renderFeature = () => {
