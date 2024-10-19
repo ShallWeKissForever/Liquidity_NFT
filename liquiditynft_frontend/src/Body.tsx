@@ -34,9 +34,6 @@ export default function SwapFeature() {
   //储存pool的数组
   const [pools, setPools] = useState<Pool[]>([]);
 
-  //标记拉取pool列表是否已完成
-  const [isgetCoinListDone, setIsgetCoinListDone] = useState<boolean>();
-
   //用于CoinSelector的储存token的list
   const [coinList, setCoinList] = useState<Array<{ 
     name: string; 
@@ -116,7 +113,7 @@ export default function SwapFeature() {
       },
     ]);
     //去掉重复token的 token1 列表
-    const updatedCoinList = coinList.filter((coin) => {
+    const filteredCoinListForToken1 = coinList.filter((coin) => {
       // 只在 metadata 没有被见过的情况下保留这个币
       if (!seenMetadata.has(coin.metadata)) {
         seenMetadata.add(coin.metadata);
@@ -125,8 +122,8 @@ export default function SwapFeature() {
       return false;
     });
     setCoinList(coinList);
-    setFilteredCoinListForToken1(updatedCoinList);
-  }, [isgetCoinListDone]); // 当 拉取pools 完成时，更新 coinList
+    setFilteredCoinListForToken1(filteredCoinListForToken1);
+  }, [pools]); // 当 pools 更新时，更新 coinList
 
   // 当 selectedCoin1 变化时，重置 selectedCoin2
   useEffect(() => {
@@ -243,9 +240,6 @@ export default function SwapFeature() {
 
       // 在所有池处理完后一次性更新状态
       setPools(tempPools);
-
-      // 标记拉取pools完成
-      setIsgetCoinListDone(true);
 
     } catch (error) {
       console.log(error);
