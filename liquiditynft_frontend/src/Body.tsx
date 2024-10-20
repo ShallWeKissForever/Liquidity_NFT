@@ -842,35 +842,12 @@ export default function SwapFeature() {
 
   return (
 
-    <Row align={'top'} justify={'start'}>
+    <Row align={"middle"} justify={'center'}>
 
-      {/* 新的左侧列 */}
-      <Col span={4} offset={4} style={{ marginTop: '82px' }}>
+      <Col span={6} style={{marginTop:'50px'}}>
 
-        <div className='nft-img-box'>
-
-          {/* 仅当 lpNftUri 不为空字符串时才渲染图片 */}
-          {lpNftUri !== '' && (
-            <>
-              <img src={lpNftUri} alt="NFT" className='nft-img' />
-              <p className='nft-font'>{`LP-NFT-${selectedCoin1.symbol}`+`-${selectedCoin2.symbol}`}</p>
-            </>
-          )}
-
-          {lpNftUri === '' && (
-            <>
-              <img src="https://s21.ax1x.com/2024/10/20/pAaB3cT.png" alt="NFT uri miss" className='nft-img' />
-              <p className='nft-font'>Please select token</p>
-            </>
-          )}
-
-        </div>
-
-      </Col>
-
-      {/* 中心内容 */}
-      <Col span={6} offset={1} style={{ marginTop: '50px' }}>
         <div>
+
           {/* 按钮组 */}
           <div className='feature-button-div'>
             <Button
