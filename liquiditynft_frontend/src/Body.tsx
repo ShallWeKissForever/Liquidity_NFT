@@ -8,7 +8,7 @@ import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
 export default function SwapFeature() {
 
   //合约发布的账户地址
-  const moduleAddress = "0xd7f5fe958addd81d4e88275de434cd7df42661df337109ea1a99a8f5040ee63c";
+  const moduleAddress = "0x3a689c0f3956a4b847d9778fb227490a62c2e5c34e6fc31972c3811434336df2";
   //mint测试币地址
   const mintFaAddress = "0x71dfdf10572f2d5ba5a66ccbf6e7a785d201fdb4bda312a870deeec3d8fd2f96";
 
@@ -60,7 +60,7 @@ export default function SwapFeature() {
     metadata: string; 
     pairTokenMetadata:string 
   }>({
-    name: "选择代币",
+    name: "Select token",
     symbol: "", 
     uri: "", 
     metadata: "", 
@@ -75,12 +75,18 @@ export default function SwapFeature() {
     metadata: string; 
     pairTokenMetadata:string 
   }>({
-    name: "选择代币",
+    name: "Select token",
     symbol: "", 
     uri: "", 
     metadata: "", 
     pairTokenMetadata:"" ,
   })
+
+  //保存当前选择币对的NFT的Uri
+  const [lpNftUri, setLpNftUri] = useState('');
+
+  //保存当前选择币对的LP Token的余额
+  const [lpTokenBalance, setLpTokenBalance] = useState('');
 
   // 定义状态来保存当前选择的功能
   const [activeFeature, setActiveFeature] = useState('swap');
@@ -89,6 +95,24 @@ export default function SwapFeature() {
   useEffect(() => {
     getCoinList();
   }, []); // 空依赖数组表示只在组件挂载时执行一次
+
+  // 在selectedCoin2有值并连接了钱包时更新
+  useEffect(() => {
+    if (selectedCoin2.uri !== '' && account !== null) {
+      getLpNftUri();
+    } else {
+      setLpNftUri('');
+    }
+  }, [selectedCoin2, account?.address]); //当selectedCoin2变化和连接&断开钱包时更新
+
+  // 在selectedCoin2有值并连接了钱包时更新
+  useEffect(() => {
+    if (selectedCoin2.uri !== '' && account !== null) {
+      getLpTokenBalance();
+    } else {
+      setLpTokenBalance('');
+    }
+  }, [selectedCoin2, account?.address]); //当selectedCoin2变化和连接&断开钱包时更新
 
   // 使用 useEffect 在 pools 更新时更新 coinList
   useEffect(() => {
@@ -128,7 +152,7 @@ export default function SwapFeature() {
   // 当 selectedCoin1 变化时，重置 selectedCoin2
   useEffect(() => {
     setSelectedCoin2({
-      name: '选择代币',
+      name: 'Select token',
       symbol: '',
       uri: '',
       metadata: '',
@@ -246,6 +270,37 @@ export default function SwapFeature() {
     }
   };
 
+  //获取NFT Uri
+  const getLpNftUri = async () => {
+    try {
+      const returnGetLpNftUri = await aptos.view({
+        payload: {
+          function: `${moduleAddress}::liquidity_pool::get_nft_uri`,
+          typeArguments: [],
+          functionArguments: [account?.address, selectedCoin1.metadata, selectedCoin2.metadata, false],
+        },
+      });
+      setLpNftUri(`${returnGetLpNftUri[0]}`);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  //获取Lp Token的余额
+  const getLpTokenBalance = async () => {
+    try {
+      const returnGetLpTokenBalance = await aptos.view({
+        payload: {
+          function: `${moduleAddress}::liquidity_pool::lp_token_balance`,
+          typeArguments: [],
+          functionArguments: [account?.address, selectedCoin1.metadata, selectedCoin2.metadata, false],
+        },
+      });
+      setLpTokenBalance(`${returnGetLpTokenBalance[0]}`);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   //选择代币的按钮
   const CoinSelector = ({
@@ -269,7 +324,7 @@ export default function SwapFeature() {
       setIsModalVisible(false);
     };
   
-    // 选择代币
+    // Select token
     const handleSelectCoin = (coin: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string; }) => {
       setSelectedCoin(coin);  // 选择的币对传回上层
       setIsModalVisible(false);  // 选择后关闭弹窗
@@ -278,14 +333,14 @@ export default function SwapFeature() {
     return (
       <div className='coin-selector-div'>
         <Button className='coin-selector-button' type="primary" onClick={showModal}>
-          {selectedCoin.name !== '选择代币' ? 
+          {selectedCoin.name !== 'Select token' ? 
             <img className='coin-selector-button-token-img' src={selectedCoin.uri} alt={selectedCoin.symbol} /> : 
             ''}
-          {selectedCoin.name !== '选择代币' ? `${selectedCoin.symbol}` : '选择代币'}
+          {selectedCoin.name !== 'Select token' ? `${selectedCoin.symbol}` : 'Select token'}
         </Button>
 
         {/* 弹窗显示币对选择 */}
-        <Modal title="选择代币" open={isModalVisible} onCancel={handleCancel} footer={null}>
+        <Modal title="Select token" open={isModalVisible} onCancel={handleCancel} footer={null}>
           <List
             dataSource={coinList}
             renderItem={coin => (
@@ -386,7 +441,7 @@ export default function SwapFeature() {
     return (
       <>
         <div className="box">
-          <span className="box-span">出售</span>
+          <span className="box-span">Sell</span>
           <br />
           <input
             className="box-input"
@@ -401,7 +456,7 @@ export default function SwapFeature() {
         </div>
   
         <div className="box">
-          <span className="box-span">购买</span>
+          <span className="box-span">Buy</span>
           <br />
           <input className="box-input display-buy-token-amount" value={buyTokenAmount} placeholder="0" readOnly />
           <CoinSelector
@@ -414,11 +469,12 @@ export default function SwapFeature() {
         {account === null ? (
           <Row justify={"center"}>
             <WalletSelector />
+            <div style={{marginBottom:'5px'}}></div>
           </Row>
         ) : (
           <Row justify={"center"}>
             <Button className="submit-button" onClick={handleSwap}>
-              兑换
+              Swap
             </Button>
           </Row>
         )}
@@ -502,11 +558,12 @@ export default function SwapFeature() {
         {(account === null) ? (
           <Row justify={'center'}>
             <WalletSelector />
+            <div style={{marginBottom:'5px'}}></div>
           </Row>
         ) : (
           <Row justify={'center'}>
             <Button className='submit-button' onClick={handleCreatePool}>
-              创建
+              Create Pool
             </Button>
           </Row>
         )}
@@ -536,6 +593,10 @@ export default function SwapFeature() {
 
         const responseAddLiquidity = await signAndSubmitTransaction(transactionAddLiquidity);
         await aptos.waitForTransaction({transactionHash:responseAddLiquidity.hash})
+
+        //更新LP NFT和LP Token的余额
+        getLpNftUri();
+        getLpTokenBalance();
         
       } catch (error) {
         console.log("error",error)
@@ -596,16 +657,17 @@ export default function SwapFeature() {
       </div>
 
       {(account === null) ? (
-      <Row justify={'center'}>
-        <WalletSelector />
-      </Row>
-    ) : (
-      <Row justify={'center'}>
-        <Button className='submit-button' onClick={handleAddLiquidity}>
-          添加
-        </Button>
-      </Row>
-    )}
+        <Row justify={'center'}>
+          <WalletSelector />
+          <div style={{marginBottom:'5px'}}></div>
+        </Row>
+      ) : (
+        <Row justify={'center'}>
+          <Button className='submit-button' onClick={handleAddLiquidity}>
+            Add Liquidity
+          </Button>
+        </Row>
+      )}
 
     </>
     );
@@ -631,6 +693,10 @@ export default function SwapFeature() {
 
         const responseRemoveLiquidity = await signAndSubmitTransaction(transactionRemoveLiquidity);
         await aptos.waitForTransaction({transactionHash:responseRemoveLiquidity.hash})
+
+        //更新LP NFT和LP Token的余额
+        getLpNftUri();
+        getLpTokenBalance();
         
       } catch (error) {
         console.log("error",error)
@@ -658,6 +724,10 @@ export default function SwapFeature() {
           placeholder='0'
         />
 
+        <span className='box-span-lp-token-balance'>
+        LP Token Balance : {lpTokenBalance}
+        </span>
+
         <div className="coin-selector-button-container">
 
           <CoinSelector 
@@ -677,16 +747,17 @@ export default function SwapFeature() {
       </div>
 
       {(account === null) ? (
-      <Row justify={'center'}>
-        <WalletSelector />
-      </Row>
-    ) : (
-      <Row justify={'center'}>
-        <Button className='submit-button' onClick={handleRemoveLiquidity}>
-          移除
-        </Button>
-      </Row>
-    )}
+        <Row justify={'center'}>
+            <WalletSelector />
+            <div style={{marginBottom:'5px'}}></div>
+        </Row>
+      ) : (
+        <Row justify={'center'}>
+          <Button className='submit-button' onClick={handleRemoveLiquidity}>
+            Remove Liquidity
+          </Button>
+        </Row>
+      )}
 
     </>
     );
@@ -771,16 +842,38 @@ export default function SwapFeature() {
 
   return (
 
-    <Row align={"middle"} justify={'center'}>
+    <Row align={'top'} justify={'start'}>
 
-      <Col span={6} style={{marginTop:'50px'}}>
+      {/* 新的左侧列 */}
+      <Col span={4} offset={4} style={{ marginTop: '82px' }}>
 
+        <div className='nft-img-box'>
+
+          {/* 仅当 lpNftUri 不为空字符串时才渲染图片 */}
+          {lpNftUri !== '' && (
+            <>
+              <img src={lpNftUri} alt="NFT" className='nft-img' />
+              <p className='nft-font'>{`LP-NFT-${selectedCoin1.symbol}`+`-${selectedCoin2.symbol}`}</p>
+            </>
+          )}
+
+          {lpNftUri === '' && (
+            <>
+              <img src="https://private-user-images.githubusercontent.com/132680922/378160983-dc64f23b-c14b-4c57-b8c0-1078e35ac54c.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Mjk0MDY3NDUsIm5iZiI6MTcyOTQwNjQ0NSwicGF0aCI6Ii8xMzI2ODA5MjIvMzc4MTYwOTgzLWRjNjRmMjNiLWMxNGItNGM1Ny1iOGMwLTEwNzhlMzVhYzU0Yy5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQxMDIwJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MTAyMFQwNjQwNDVaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1mOGEzOTU1OTZmM2Q3Y2E0NzdlY2RhOWNjYmY0ZDdlMzM2ZTE1ODc2NWNjYzJiNTA2ZDkwZTg1ZWM3MmMzNGRmJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.OOF2wN-vdH4MZ9tjlFtYDcgQYNUeVVM4DIlA_WMefrs" alt="unknowNFT" className='nft-img' />
+              <p className='nft-font'>Please select token</p>
+            </>
+          )}
+
+        </div>
+
+      </Col>
+
+      {/* 中心内容 */}
+      <Col span={6} offset={1} style={{ marginTop: '50px' }}>
         <div>
-
           {/* 按钮组 */}
-          <div className='feature-button-div' >
-
-            <Button 
+          <div className='feature-button-div'>
+            <Button
               className='feature-button'
               onClick={() => setActiveFeature('swap')}
               style={{
@@ -788,10 +881,10 @@ export default function SwapFeature() {
                 color: activeFeature === 'swap' ? 'white' : 'black',
               }}
             >
-            兑换
+              Swap
             </Button>
 
-            <Button 
+            <Button
               className='feature-button'
               onClick={() => setActiveFeature('createPool')}
               style={{
@@ -799,10 +892,10 @@ export default function SwapFeature() {
                 color: activeFeature === 'createPool' ? 'white' : 'black',
               }}
             >
-            创建
+              Create
             </Button>
 
-            <Button 
+            <Button
               className='feature-button'
               onClick={() => setActiveFeature('addLiquidity')}
               style={{
@@ -810,10 +903,10 @@ export default function SwapFeature() {
                 color: activeFeature === 'addLiquidity' ? 'white' : 'black',
               }}
             >
-            添加
+              Add
             </Button>
 
-            <Button 
+            <Button
               className='feature-button'
               onClick={() => setActiveFeature('removeLiquidity')}
               style={{
@@ -821,27 +914,25 @@ export default function SwapFeature() {
                 color: activeFeature === 'removeLiquidity' ? 'white' : 'black',
               }}
             >
-            移除
+              Remove
             </Button>
-
           </div>
 
           {/* 动态内容区域 */}
           <div>
-
             {renderFeature()}
-
           </div>
 
-          {/* test only */}
+          {/* 领取测试币 */}
+
           <Row justify={'center'}>
-            <Button className='submit-button' onClick={handleMintTestFA}>MintTestToken</Button>
+            <Button className='submit-button' onClick={handleMintTestFA}>Mint Test Tokens</Button>
           </Row> 
+
         </div>
-
       </Col>
-
     </Row>
+
 
   );
 }
