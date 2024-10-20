@@ -225,16 +225,6 @@ module contract::router {
         (redeemed_1, redeemed_2)
     }
 
-    public entry fun lp_nft_update(
-        lp: &signer,
-        token_address: address,
-        token_1: Object<Metadata>,
-        token_2: Object<Metadata>,
-        is_stable: bool
-    ) {
-        liquidity_pool::lp_nft_request_for_update_uri(lp, &token_address, token_1, token_2, is_stable);
-    }
-
     #[test]
     fun test() {
 

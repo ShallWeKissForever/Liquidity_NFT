@@ -217,7 +217,7 @@ module contract::liquidity_pool {
     }
 
     #[view]
-    public fun  liquidity_pool_address(
+    public fun liquidity_pool_address(
         token_1: Object<Metadata>,
         token_2: Object<Metadata>,
         is_stable: bool,
@@ -231,6 +231,21 @@ module contract::liquidity_pool {
     #[view]
     public fun lp_token_supply<T: key>(pool: Object<T>): u128 {
         option::destroy_some(fungible_asset::supply(pool))
+    }
+
+    #[view]
+    public fun lp_token_balance(
+        lp: address,
+        token_1: Object<Metadata>,
+        token_2: Object<Metadata>,
+        is_stable: bool,
+    ): u64 acquires ResourceAccountCap, LiquidityPool {
+        if (!is_sorted(token_1, token_2)) {
+            return lp_token_balance(lp, token_2, token_1, is_stable)
+        };
+        let pool = liquidity_pool(token_1, token_2, is_stable);
+        let lp_store = ensure_lp_token_store(lp, pool);
+        fungible_asset::balance(lp_store)
     }
 
     #[view]
@@ -476,7 +491,7 @@ module contract::liquidity_pool {
         fungible_asset::deposit_with_ref(&pool_data.lp_token_refs.transfer_ref, lp_store, lp_tokens);
 
 
-        let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp, pool);
+        let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(address_of(lp), pool);
 
         let  isMinted = &mut borrow_global_mut<MintedAddressStore>(liquidity_pool_address(token_1, token_2, is_stable)).minted;
         if (*smart_table::borrow_mut_with_default( isMinted, address_of(lp), @0x0) == @0x0) {
@@ -568,7 +583,7 @@ module contract::liquidity_pool {
 
         } else {
 
-            let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp, pool);
+            let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp_address, pool);
 
             lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage, pool);
 
@@ -1039,8 +1054,8 @@ module contract::liquidity_pool {
 
     }
 
-    public(friend) fun lp_nft_request_for_update_uri(
-        lp: &signer,
+    public fun lp_nft_request_for_update_uri(
+        lp: address,
         token_address: &address,
         token_1: Object<Metadata>,
         token_2: Object<Metadata>,
@@ -1055,23 +1070,42 @@ module contract::liquidity_pool {
 
     }
 
-    fun lp_nft_get_fees_and_plt(lp: &signer, pool: Object<LiquidityPool>): (u128, u256) acquires FeesAccounting {
+    fun lp_nft_get_fees_and_plt(lp: address, pool: Object<LiquidityPool>): (u128, u256) acquires FeesAccounting {
         let claimable_fee1 = *smart_table::borrow_mut_with_default(
             &mut unchecked_mut_fees_accounting(&pool).claimable_1,
-            address_of(lp),
+            lp,
             0
         );
         let claimable_fee2 = *smart_table::borrow_mut_with_default(
             &mut unchecked_mut_fees_accounting(&pool).claimable_2,
-            address_of(lp),
+            lp,
             0
         );
         let claimable_fees = claimable_fee1 + claimable_fee2;
 
-        let lp_balance = (primary_fungible_store::balance(address_of(lp), pool) as u128);
+        let lp_balance = (primary_fungible_store::balance(lp, pool) as u128);
         let lp_token_total_supply = lp_token_supply(pool);
         let lp_token_percentage = (math128::mul_div(lp_balance, 100, lp_token_total_supply) as u256);
         ( claimable_fees, lp_token_percentage )
+    }
+
+    #[view]
+    public fun get_nft_uri(
+        lp: address,
+        token_1: Object<Metadata>,
+        token_2: Object<Metadata>,
+        is_stable: bool,
+    ): String acquires ResourceAccountCap, MintedAddressStore, NFTRefs, FeesAccounting {
+        let pool = liquidity_pool(token_1, token_2, is_stable);
+        let pool_address = object::object_address(&pool);
+        let isMinted = &mut borrow_global_mut<MintedAddressStore>(pool_address).minted;
+        let nft_address = smart_table::borrow(isMinted, lp);
+        let nft_object = object::address_to_object<Token>(*nft_address);
+
+        //update before query
+        lp_nft_request_for_update_uri(lp, nft_address, token_1, token_2, is_stable);
+
+        token::uri(nft_object)
     }
 
 }
