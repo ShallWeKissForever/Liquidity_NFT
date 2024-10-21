@@ -34,8 +34,8 @@ export default function SwapFeature() {
   //储存pool的数组
   const [pools, setPools] = useState<Pool[]>([]);
 
-  //用于CoinSelector的储存token的list
-  const [coinList, setCoinList] = useState<Array<{ 
+  //用于TokenSelector的储存token的list
+  const [tokenList, setTokenList] = useState<Array<{ 
     name: string; 
     symbol: string; 
     uri: string; 
@@ -43,8 +43,8 @@ export default function SwapFeature() {
     pairTokenMetadata:string 
   }>>([]);
 
-  //用于filter后的CoinSelector的储存token1的去重的list
-  const [filteredCoinListForToken1, setFilteredCoinListForToken1] = useState<Array<{ 
+  //用于filter后的TokenSelector的储存token1的去重的list
+  const [filteredTokenListForToken1, setFilteredTokenListForToken1] = useState<Array<{ 
     name: string; 
     symbol: string; 
     uri: string; 
@@ -52,8 +52,8 @@ export default function SwapFeature() {
     pairTokenMetadata:string 
   }>>([]);
 
-  //在coinSelector1中被选中的token
-  const [selectedCoin1, setSelectedCoin1] = useState<{ 
+  //在tokenSelector1中被选中的token
+  const [selectedToken1, setSelectedToken1] = useState<{ 
     name: string; 
     symbol: string; 
     uri: string; 
@@ -67,8 +67,8 @@ export default function SwapFeature() {
     pairTokenMetadata:"" ,
   })
 
-  //在coinSelector2中被选中的token
-  const [selectedCoin2, setSelectedCoin2] = useState<{ 
+  //在tokenSelector2中被选中的token
+  const [selectedToken2, setSelectedToken2] = useState<{ 
     name: string; 
     symbol: string; 
     uri: string; 
@@ -91,36 +91,39 @@ export default function SwapFeature() {
   // 定义状态来保存当前选择的功能
   const [activeFeature, setActiveFeature] = useState('swap');
 
-  // 在组件挂载时执行 getCoinList
+  //保存正在拉取token列表的状态
+  const [fetchingTokenList, setFetchingTokenList] = useState(false)
+
+  // 在组件挂载时执行 getTokenList
   useEffect(() => {
-    getCoinList();
+    getTokenList();
   }, []); // 空依赖数组表示只在组件挂载时执行一次
 
-  // 在selectedCoin2有值并连接了钱包时更新
+  // 在selectedToken2有值并连接了钱包时更新
   useEffect(() => {
-    if (selectedCoin2.uri !== '' && account !== null) {
+    if (selectedToken2.uri !== '' && account !== null) {
       getLpNftUri();
     } else {
       setLpNftUri('');
     }
-  }, [selectedCoin2, account?.address]); //当selectedCoin2变化和连接&断开钱包时更新
+  }, [selectedToken2, account?.address]); //当selectedToken2变化和连接&断开钱包时更新
 
-  // 在selectedCoin2有值并连接了钱包时更新
+  // 在selectedToken2有值并连接了钱包时更新
   useEffect(() => {
-    if (selectedCoin2.uri !== '' && account !== null) {
+    if (selectedToken2.uri !== '' && account !== null) {
       getLpTokenBalance();
     } else {
       setLpTokenBalance('');
     }
-  }, [selectedCoin2, account?.address]); //当selectedCoin2变化和连接&断开钱包时更新
+  }, [selectedToken2, account?.address]); //当selectedToken2变化和连接&断开钱包时更新
 
-  // 使用 useEffect 在 pools 更新时更新 coinList
+  // 使用 useEffect 在 pools 更新时更新 tokenList
   useEffect(() => {
 
     // 使用 Set 来跟踪已出现的 metadata，避免重复
     const seenMetadata = new Set();
 
-    const coinList = pools.flatMap((pool) => [
+    const tokenList = pools.flatMap((pool) => [
       {
         name: pool.token_name_1,         // 用 token_name_1 作为 name
         symbol: pool.token_symbol_1,     // 用 token_symbol_1 作为 symbol
@@ -137,36 +140,37 @@ export default function SwapFeature() {
       },
     ]);
     //去掉重复token的 token1 列表
-    const filteredCoinListForToken1 = coinList.filter((coin) => {
+    const filteredTokenListForToken1 = tokenList.filter((token) => {
       // 只在 metadata 没有被见过的情况下保留这个币
-      if (!seenMetadata.has(coin.metadata)) {
-        seenMetadata.add(coin.metadata);
+      if (!seenMetadata.has(token.metadata)) {
+        seenMetadata.add(token.metadata);
         return true;
       }
       return false;
     });
-    setCoinList(coinList);
-    setFilteredCoinListForToken1(filteredCoinListForToken1);
-  }, [pools]); // 当 pools 更新时，更新 coinList
+    setTokenList(tokenList);
+    setFilteredTokenListForToken1(filteredTokenListForToken1);
+  }, [pools]); // 当 pools 更新时，更新 tokenList
 
-  // 在选择 coin1 时重置 coin2
+  // 在选择 token1 时重置 token2
   useEffect(() => {
-    setSelectedCoin2({
+    setSelectedToken2({
       name: 'Select token',
       symbol: '',
       uri: '',
       metadata: '',
       pairTokenMetadata: '',
     });
-  }, [selectedCoin1]);
+  }, [selectedToken1]);
 
   // 过滤出符合 token1 的 pairTokenMetadata 的 token2 列表
-  const filteredCoinListForToken2 = coinList.filter(
-    (coin) => coin.pairTokenMetadata === selectedCoin1.metadata
+  const filteredTokenListForToken2 = tokenList.filter(
+    (token) => token.pairTokenMetadata === selectedToken1.metadata
   );
 
   // 从链上获取币对
-  const getCoinList = async () => {
+  const getTokenList = async () => {
+    setFetchingTokenList(true);
     try {
       const returnGetPools: Array<Array<{ inner: string }>> = await aptos.view({
         payload: {
@@ -266,6 +270,7 @@ export default function SwapFeature() {
     } catch (error) {
       console.log(error);
     }
+    setFetchingTokenList(false);
   };
 
   //获取NFT Uri
@@ -275,7 +280,7 @@ export default function SwapFeature() {
         payload: {
           function: `${moduleAddress}::liquidity_pool::get_nft_uri`,
           typeArguments: [],
-          functionArguments: [account?.address, selectedCoin1.metadata, selectedCoin2.metadata, false],
+          functionArguments: [account?.address, selectedToken1.metadata, selectedToken2.metadata, false],
         },
       });
       setLpNftUri(`${returnGetLpNftUri[0]}`);
@@ -291,7 +296,7 @@ export default function SwapFeature() {
         payload: {
           function: `${moduleAddress}::liquidity_pool::lp_token_balance`,
           typeArguments: [],
-          functionArguments: [account?.address, selectedCoin1.metadata, selectedCoin2.metadata, false],
+          functionArguments: [account?.address, selectedToken1.metadata, selectedToken2.metadata, false],
         },
       });
       setLpTokenBalance(`${returnGetLpTokenBalance[0]}`);
@@ -319,14 +324,14 @@ export default function SwapFeature() {
   };
 
   //选择代币的按钮
-  const CoinSelector = ({
-    selectedCoin,
-    setSelectedCoin,
-    coinList,
+  const TokenSelector = ({
+    selectedToken,
+    setSelectedToken,
+    tokenList,
   }: {
-    selectedCoin: { name: string; symbol: string; uri: string };
-    setSelectedCoin: (coin: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string }) => void;
-    coinList: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string }[];
+    selectedToken: { name: string; symbol: string; uri: string };
+    setSelectedToken: (token: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string }) => void;
+    tokenList: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string }[];
   }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);  // 控制弹窗的显示状态
   
@@ -341,34 +346,42 @@ export default function SwapFeature() {
     };
   
     // Select token
-    const handleSelectCoin = (coin: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string; }) => {
-      setSelectedCoin(coin);  // 选择的币对传回上层
+    const handleSelectToken = (token: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string; }) => {
+      setSelectedToken(token);  // 选择的币对传回上层
       setIsModalVisible(false);  // 选择后关闭弹窗
     };
   
     return (
-      <div className='coin-selector-div'>
-        <Button className='coin-selector-button' type="primary" onClick={showModal}>
-          {selectedCoin.name !== 'Select token' ? 
-            <img className='coin-selector-button-token-img' src={selectedCoin.uri} alt={selectedCoin.symbol} /> : 
-            ''}
-          {selectedCoin.name !== 'Select token' ? `${selectedCoin.symbol}` : 'Select token'}
+      <div className='token-selector-div'>
+        <Button className='token-selector-button' type="primary" onClick={showModal} disabled={fetchingTokenList}>
+          {/* 更新tokenList时禁用按钮 */}
+          {fetchingTokenList === false ? (
+            <>
+              {selectedToken.name !== 'Select token' ? 
+                <img className='token-selector-button-token-img' src={selectedToken.uri} alt={selectedToken.symbol} /> : 
+                ''}
+              {selectedToken.name !== 'Select token' ? `${selectedToken.symbol}` : 'Select token'}
+            </>
+          ) : (
+            'Loading...'
+          )}
+
         </Button>
 
         {/* 弹窗显示币对选择 */}
         <Modal title="Select token" open={isModalVisible} onCancel={handleCancel} footer={null}>
           <List
-            dataSource={coinList}
-            renderItem={coin => (
-              <List.Item onClick={() => handleSelectCoin(coin)}>
+            dataSource={tokenList}
+            renderItem={token => (
+              <List.Item onClick={() => handleSelectToken(token)}>
 
-                <div className="coin-selector-modal-row">
-                    <div className="coin-selector-modal-image-column">
-                      <img className="coin-selector-modal-token-img" src={coin.uri} alt={coin.symbol} />
+                <div className="token-selector-modal-row">
+                    <div className="token-selector-modal-image-column">
+                      <img className="token-selector-modal-token-img" src={token.uri} alt={token.symbol} />
                     </div>
-                    <div className="coin-selector-modal-info-column">
-                      <span className="coin-selector-modal-token-name-symbol">{coin.name} ({coin.symbol})</span>
-                      <span className="coin-selector-modal-token-metadata">{coin.metadata}</span>
+                    <div className="token-selector-modal-info-column">
+                      <span className="token-selector-modal-token-name-symbol">{token.name} ({token.symbol})</span>
+                      <span className="token-selector-modal-token-metadata">{token.metadata}</span>
                     </div>
                 </div>
 
@@ -416,10 +429,10 @@ export default function SwapFeature() {
     };
   
     const calculateAndSetBuyTokenAmount = async () => {
-      if (!sellTokenAmount || !selectedCoin1 || !selectedCoin2) return;
+      if (!sellTokenAmount || !selectedToken1 || !selectedToken2) return;
     
       // 根据sellTokenAmount和选择的币种生成唯一的缓存键
-      const cacheKey = `${sellTokenAmount}-${selectedCoin1.metadata}-${selectedCoin2.metadata}`;
+      const cacheKey = `${sellTokenAmount}-${selectedToken1.metadata}-${selectedToken2.metadata}`;
     
       if (amountCache.current[cacheKey]) {
         // 如果有缓存金额，则直接使用缓存
@@ -435,8 +448,8 @@ export default function SwapFeature() {
             typeArguments: [],
             functionArguments: [
               (parseFloat(sellTokenAmount) * 1_000_000).toString(), // 在传递时乘以1000000
-              selectedCoin1.metadata,
-              selectedCoin2.metadata,
+              selectedToken1.metadata,
+              selectedToken2.metadata,
             ],
           },
         });
@@ -460,7 +473,7 @@ export default function SwapFeature() {
         setBuyTokenAmount("0");
         calculateAndSetBuyTokenAmount();
       }
-    }, [sellTokenAmount, selectedCoin1, selectedCoin2]);
+    }, [sellTokenAmount, selectedToken1, selectedToken2]);
   
     const handleSwap = async () => {
       const transactionSwap: InputTransactionData = {
@@ -469,8 +482,8 @@ export default function SwapFeature() {
           functionArguments: [
             convertToInternalValue(sellTokenAmount).toString(),  // 在逻辑中使用转换后的值
             1,
-            selectedCoin1.metadata,
-            selectedCoin2.metadata,
+            selectedToken1.metadata,
+            selectedToken2.metadata,
             false,
             account?.address,
           ],
@@ -496,10 +509,10 @@ export default function SwapFeature() {
             onChange={(e) => handleSellTokenChange(e.target.value)}
             placeholder="0"
           />
-          <CoinSelector
-            selectedCoin={selectedCoin1}
-            setSelectedCoin={setSelectedCoin1}
-            coinList={filteredCoinListForToken1}
+          <TokenSelector
+            selectedToken={selectedToken1}
+            setSelectedToken={setSelectedToken1}
+            tokenList={filteredTokenListForToken1}
           />
         </div>
 
@@ -512,10 +525,10 @@ export default function SwapFeature() {
             placeholder="0" 
             readOnly 
           />
-          <CoinSelector
-            selectedCoin={selectedCoin2}
-            setSelectedCoin={setSelectedCoin2}
-            coinList={filteredCoinListForToken2}
+          <TokenSelector
+            selectedToken={selectedToken2}
+            setSelectedToken={setSelectedToken2}
+            tokenList={filteredTokenListForToken2}
           />
         </div>
   
@@ -566,8 +579,8 @@ export default function SwapFeature() {
       if (token1Ref.current) token1Ref.current.value = "";
       if (token2Ref.current) token2Ref.current.value = "";
 
-      //拉取Coin列表
-      getCoinList();
+      //拉取token列表
+      getTokenList();
 
     };
 
@@ -652,7 +665,7 @@ export default function SwapFeature() {
       const transactionAddLiquidity: InputTransactionData = {
         data: {
           function: `${moduleAddress}::router::add_liquidity_entry`,
-          functionArguments: [selectedCoin1.metadata, selectedCoin2.metadata, false, formattedToken1Amount, formattedToken2Amount, 1, 1]
+          functionArguments: [selectedToken1.metadata, selectedToken2.metadata, false, formattedToken1Amount, formattedToken2Amount, 1, 1]
         }
       };
   
@@ -684,10 +697,10 @@ export default function SwapFeature() {
             onChange={(e) => handleTokenInput(e, setDisplayToken1Amount)} // 处理输入
             placeholder='0'
           />
-          <CoinSelector
-            selectedCoin={selectedCoin1}
-            setSelectedCoin={setSelectedCoin1}
-            coinList={filteredCoinListForToken1}
+          <TokenSelector
+            selectedToken={selectedToken1}
+            setSelectedToken={setSelectedToken1}
+            tokenList={filteredTokenListForToken1}
           />
         </div>
   
@@ -701,10 +714,10 @@ export default function SwapFeature() {
             onChange={(e) => handleTokenInput(e, setDisplayToken2Amount)} // 处理输入
             placeholder='0'
           />
-          <CoinSelector
-            selectedCoin={selectedCoin2}
-            setSelectedCoin={setSelectedCoin2}
-            coinList={filteredCoinListForToken2}
+          <TokenSelector
+            selectedToken={selectedToken2}
+            setSelectedToken={setSelectedToken2}
+            tokenList={filteredTokenListForToken2}
           />
         </div>
   
@@ -751,7 +764,7 @@ export default function SwapFeature() {
       const transactionRemoveLiquidity: InputTransactionData = {
         data: {
           function: `${moduleAddress}::router::remove_liquidity_entry`,
-          functionArguments: [selectedCoin1.metadata, selectedCoin2.metadata, false, formattedLpTokenAmount, 1, 1, account?.address]
+          functionArguments: [selectedToken1.metadata, selectedToken2.metadata, false, formattedLpTokenAmount, 1, 1, account?.address]
         }
       };
   
@@ -786,16 +799,16 @@ export default function SwapFeature() {
             LP Token Balance : {lpTokenBalance ? (parseFloat(lpTokenBalance) / 1_000_000).toString() : "0"} {/* 将lpTokenBalance除以1000000 */}
           </span>
   
-          <div className="coin-selector-button-container">
-            <CoinSelector
-              selectedCoin={selectedCoin1}
-              setSelectedCoin={setSelectedCoin1}
-              coinList={filteredCoinListForToken1}
+          <div className="token-selector-button-container">
+            <TokenSelector
+              selectedToken={selectedToken1}
+              setSelectedToken={setSelectedToken1}
+              tokenList={filteredTokenListForToken1}
             />
-            <CoinSelector
-              selectedCoin={selectedCoin2}
-              setSelectedCoin={setSelectedCoin2}
-              coinList={filteredCoinListForToken2}
+            <TokenSelector
+              selectedToken={selectedToken2}
+              setSelectedToken={setSelectedToken2}
+              tokenList={filteredTokenListForToken2}
             />
           </div>
         </div>
@@ -907,7 +920,7 @@ export default function SwapFeature() {
           {lpNftUri !== '' && (
             <>
               <img src={lpNftUri} alt="NFT" className='nft-img' />
-              <p className='nft-font'>{`LP-NFT-${selectedCoin1.symbol}`+`-${selectedCoin2.symbol}`}</p>
+              <p className='nft-font'>{`LP-NFT-${selectedToken1.symbol}`+`-${selectedToken2.symbol}`}</p>
             </>
           )}
           {lpNftUri === '' && (

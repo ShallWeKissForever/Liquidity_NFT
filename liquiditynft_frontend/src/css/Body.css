@@ -8,56 +8,56 @@
     background-color: #1677ff;
 }
 
-.coin-selector-modal-row {
+.token-selector-modal-row {
     display: flex;
     align-items: center; /* 垂直居中对齐 */
     gap: 10px; /* 两列之间的间距 */
     transition: background-color 0.3s ease; /* 添加过渡效果，使颜色变化更平滑 */
 }
 
-.coin-selector-modal-row:hover {
+.token-selector-modal-row:hover {
     background-color: #F5F5F5; /* 设置悬停时的背景颜色，调整透明度以使其更柔和 */
     cursor: pointer; /* 鼠标悬浮时显示可点击的样式 */
 }
 
-.coin-selector-modal-image-column {
+.token-selector-modal-image-column {
     flex: 0 0 auto; /* 确保图片列大小固定 */
 }
 
-.coin-selector-modal-info-column {
+.token-selector-modal-info-column {
     flex: 1; /* 让信息列占据剩余空间 */
     display: flex;
     flex-direction: column; /* 垂直排列 span 元素 */
     justify-content: center; /* 垂直居中信息列 */
 }
 
-.coin-selector-button-container {
+.token-selector-button-container {
     display: flex;         /*使用flexbox布局 */
     flex-direction: column; /* 设置为列方向，元素垂直排列 */
-    gap: 5px;              /* 两个 CoinSelector 组件之间的垂直间距 */
+    gap: 5px;              /* 两个 tokenSelector 组件之间的垂直间距 */
     margin-top: -25px;     /* 向上移动 */
 }
 
-.coin-selector-button-container > :first-child {
+.token-selector-button-container > :first-child {
     margin-top: -10px; /* 通过负 margin 将第一个元素上移 */
 }
 
-.coin-selector-div {
+.token-selector-div {
     position:relative; 
     left:17.5vw; 
     bottom:45px;
 }
 
-.coin-selector-button {
+.token-selector-button {
     width: 100px;
 }
 
-.coin-selector-button-token-img {
+.token-selector-button-token-img {
     width: 20px;
     border-radius: 10px;
 }
 
-.coin-selector-modal-token-img {
+.token-selector-modal-token-img {
     width: 30px;
     border-radius: 15px;
     position: relative;
@@ -65,11 +65,11 @@
     left: 5px;
 }
 
-.coin-selector-modal-token-name-symbol {
+.token-selector-modal-token-name-symbol {
     font-size: large;
     font-weight:500;
 }
-.coin-selector-modal-token-metadata {
+.token-selector-modal-token-metadata {
     font-size: 12.5px;
     font-weight:normal;
 }
