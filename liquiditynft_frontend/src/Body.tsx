@@ -90,7 +90,7 @@ export default function SwapFeature() {
 
   // 定义状态来保存当前选择的功能
   const [activeFeature, setActiveFeature] = useState('swap');
-  
+
   // 在组件挂载时执行 getCoinList
   useEffect(() => {
     getCoinList();
@@ -149,7 +149,7 @@ export default function SwapFeature() {
     setFilteredCoinListForToken1(filteredCoinListForToken1);
   }, [pools]); // 当 pools 更新时，更新 coinList
 
-  // 当 selectedCoin1 变化时，重置 selectedCoin2
+  // 在选择 coin1 时重置 coin2
   useEffect(() => {
     setSelectedCoin2({
       name: 'Select token',
@@ -180,8 +180,6 @@ export default function SwapFeature() {
       const metadataStrings = returnGetPools.flatMap(poolArray =>
         poolArray.map(pool => pool.inner)
       );
-
-      console.log(metadataStrings);
 
       // 在这里定义一个临时数组
       const tempPools = [];
@@ -301,6 +299,24 @@ export default function SwapFeature() {
       console.log(error);
     }
   }
+
+  // 在提交时补零
+  const formatTokenAmount = (value: string) => {
+    if (value === "" || value === "0") {
+      return "0";
+    }
+    if (value === "1" || value === "1.") {
+      return "1000000"; // 如果输入1或1.，补零为1000000
+    }
+    // 否则将小数点右移6位
+    const parts = value.split(".");
+    if (parts.length === 1) {
+      return `${parts[0]}000000`; // 无小数部分时补6个0
+    }
+    const [integerPart, decimalPart] = parts;
+    const paddedDecimal = decimalPart.padEnd(6, "0"); // 补足6位小数
+    return `${integerPart}${paddedDecimal}`; // 返回移位后的值
+  };
 
   //选择代币的按钮
   const CoinSelector = ({
@@ -486,11 +502,16 @@ export default function SwapFeature() {
             coinList={filteredCoinListForToken1}
           />
         </div>
-  
+
         <div className="box">
           <span className="box-span">Buy</span>
           <br />
-          <input className="box-input display-buy-token-amount" value={buyTokenAmount} placeholder="0" readOnly />
+          <input 
+            className="box-input display-buy-token-amount" 
+            value={buyTokenAmount} 
+            placeholder="0" 
+            readOnly 
+          />
           <CoinSelector
             selectedCoin={selectedCoin2}
             setSelectedCoin={setSelectedCoin2}
@@ -620,24 +641,6 @@ export default function SwapFeature() {
       }
     };
   
-    // 在提交时补零
-    const formatTokenAmount = (value: string) => {
-      if (value === "" || value === "0") {
-        return "0";
-      }
-      if (value === "1" || value === "1.") {
-        return "1000000"; // 如果输入1或1.，补零为1000000
-      }
-      // 否则将小数点右移6位
-      const parts = value.split(".");
-      if (parts.length === 1) {
-        return `${parts[0]}000000`; // 无小数部分时补6个0
-      }
-      const [integerPart, decimalPart] = parts;
-      const paddedDecimal = decimalPart.padEnd(6, "0"); // 补足6位小数
-      return `${integerPart}${paddedDecimal}`; // 返回移位后的值
-    };
-  
     const handleAddLiquidity = async () => {
       const token1Amount = token1AmountRef.current ? token1AmountRef.current.value : "";
       const token2Amount = token2AmountRef.current ? token2AmountRef.current.value : "";
@@ -737,24 +740,6 @@ export default function SwapFeature() {
       if (/^\d*\.?\d{0,6}$/.test(value)) {
         setDisplayAmount(value);
       }
-    };
-  
-    // 在提交时补零
-    const formatTokenAmount = (value: string) => {
-      if (value === "" || value === "0") {
-        return "0";
-      }
-      if (value === "1" || value === "1.") {
-        return "1000000"; // 如果输入1或1.，补零为1000000
-      }
-      // 否则将小数点右移6位
-      const parts = value.split(".");
-      if (parts.length === 1) {
-        return `${parts[0]}000000`; // 无小数部分时补6个0
-      }
-      const [integerPart, decimalPart] = parts;
-      const paddedDecimal = decimalPart.padEnd(6, "0"); // 补足6位小数
-      return `${integerPart}${paddedDecimal}`; // 返回移位后的值
     };
   
     const handleRemoveLiquidity = async () => {

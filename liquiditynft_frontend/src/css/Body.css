@@ -164,3 +164,15 @@
 .nft-font {
     font-size: small;
 }
+
+.swap-button {
+    background-color: #1677ff;
+    width: 20px;
+    position: absolute;
+    top: 150px;
+    left: 11.3vw;
+}
+
+.swap-button-img {
+    width: 20px;
+}
