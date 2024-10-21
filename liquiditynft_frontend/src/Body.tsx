@@ -367,60 +367,91 @@ export default function SwapFeature() {
   // “兑换”功能组件
   const Swap = () => {
     const [sellTokenAmount, setSellTokenAmount] = useState("");
+    const [displaySellTokenAmount, setDisplaySellTokenAmount] = useState(""); // 用于保存用户看到的值
     const [buyTokenAmount, setBuyTokenAmount] = useState("");
   
-    // 用于存储之前获取的金额的缓存
     const amountCache = useRef<{ [key: string]: string }>({});
   
-    const onWriteSellTokenAmount = (value: string) => {
-      setSellTokenAmount(value);
+    const handleSellTokenChange = (value: string) => {
+      // 只允许数字和一个小数点的输入，最多6位小数
+      const formattedValue = value
+        .replace(/[^0-9.]/g, '')  // 移除非数字和小数点的字符
+        .replace(/(\..*)\./g, '$1');  // 防止用户输入多个小数点
+  
+      const [integerPart, decimalPart] = formattedValue.split('.');
+      if (decimalPart && decimalPart.length > 6) {
+        // 限制小数点后最多6位
+        setDisplaySellTokenAmount(`${integerPart}.${decimalPart.substring(0, 6)}`);
+      } else {
+        setDisplaySellTokenAmount(formattedValue);
+      }
+  
+      setSellTokenAmount(formattedValue); // 保存用户输入的原始值
+    };
+  
+    // 将用户输入的值乘以 1000000
+    const convertToInternalValue = (amount: string) => {
+      const numericValue = parseFloat(amount);
+      if (!isNaN(numericValue)) {
+        // 将用户的输入乘以 1,000,000
+        return numericValue * 1_000_000;
+      }
+      return amount;
     };
   
     const calculateAndSetBuyTokenAmount = async () => {
-      if (!sellTokenAmount || !selectedCoin1 || !selectedCoin2) return; // 确保有数据后才调用
-  
+      if (!sellTokenAmount || !selectedCoin1 || !selectedCoin2) return;
+    
       // 根据sellTokenAmount和选择的币种生成唯一的缓存键
       const cacheKey = `${sellTokenAmount}-${selectedCoin1.metadata}-${selectedCoin2.metadata}`;
-  
+    
       if (amountCache.current[cacheKey]) {
         // 如果有缓存金额，则直接使用缓存
-        setBuyTokenAmount(amountCache.current[cacheKey]);
+        setBuyTokenAmount((parseFloat(amountCache.current[cacheKey]) / 1_000_000).toString()); // 除以1000000
         return;
       }
-  
+    
       try {
+        // 调用合约函数，计算买到的 token 数量
         const returnGetAmount = await aptos.view({
           payload: {
             function: `${moduleAddress}::router::get_amount_out`,
             typeArguments: [],
-            functionArguments: [sellTokenAmount, selectedCoin1.metadata, selectedCoin2.metadata],
+            functionArguments: [
+              (parseFloat(sellTokenAmount) * 1_000_000).toString(), // 在传递时乘以1000000
+              selectedCoin1.metadata,
+              selectedCoin2.metadata,
+            ],
           },
         });
-  
+    
         const amountOut = `${returnGetAmount[0]}`;
-        amountCache.current[cacheKey] = amountOut; // 缓存结果
-        setBuyTokenAmount(amountOut);
+    
+        // 将结果缓存
+        amountCache.current[cacheKey] = amountOut;
+    
+        // 将得到的结果除以1000000后再设置buyTokenAmount
+        setBuyTokenAmount((parseFloat(amountOut) / 1_000_000).toString());
       } catch (error) {
         console.log(error);
       }
     };
   
-    // 监听sellTokenAmount变化并计算buyTokenAmount
     useEffect(() => {
       if (sellTokenAmount === "") {
         setBuyTokenAmount("");
       } else {
-        setBuyTokenAmount("0"); // 在获取数据时设置为0
+        setBuyTokenAmount("0");
         calculateAndSetBuyTokenAmount();
       }
-    }, [sellTokenAmount, selectedCoin1, selectedCoin2]); // 添加依赖项
+    }, [sellTokenAmount, selectedCoin1, selectedCoin2]);
   
     const handleSwap = async () => {
       const transactionSwap: InputTransactionData = {
         data: {
           function: `${moduleAddress}::router::swap_entry`,
           functionArguments: [
-            sellTokenAmount,
+            convertToInternalValue(sellTokenAmount).toString(),  // 在逻辑中使用转换后的值
             1,
             selectedCoin1.metadata,
             selectedCoin2.metadata,
@@ -445,7 +476,8 @@ export default function SwapFeature() {
           <br />
           <input
             className="box-input"
-            onChange={(e) => onWriteSellTokenAmount(e.target.value)}
+            value={displaySellTokenAmount}  // 显示用户输入的值
+            onChange={(e) => handleSellTokenChange(e.target.value)}
             placeholder="0"
           />
           <CoinSelector
@@ -469,7 +501,7 @@ export default function SwapFeature() {
         {account === null ? (
           <Row justify={"center"}>
             <WalletSelector />
-            <div style={{marginBottom:'5px'}}></div>
+            <div style={{ marginBottom: "5px" }}></div>
           </Row>
         ) : (
           <Row justify={"center"}>
@@ -481,8 +513,6 @@ export default function SwapFeature() {
       </>
     );
   };
-  
-  
 
   // “创建”功能组件
   const CreatePool = () => {
@@ -573,195 +603,234 @@ export default function SwapFeature() {
 
   // “添加”功能组件
   const AddLiquidity = () => {
-
+    // 用户在输入框中看到的值
+    const [displayToken1Amount, setDisplayToken1Amount] = useState("");
+    const [displayToken2Amount, setDisplayToken2Amount] = useState("");
+  
     const token1AmountRef = useRef<HTMLInputElement>(null);
     const token2AmountRef = useRef<HTMLInputElement>(null);
-
+  
+    // 处理用户输入，只限制6位小数
+    const handleTokenInput = (e: React.ChangeEvent<HTMLInputElement>, setDisplayAmount: (value: string) => void) => {
+      const value = e.target.value;
+  
+      // 限制用户输入最多6位小数
+      if (/^\d*\.?\d{0,6}$/.test(value)) {
+        setDisplayAmount(value);
+      }
+    };
+  
+    // 在提交时补零
+    const formatTokenAmount = (value: string) => {
+      if (value === "" || value === "0") {
+        return "0";
+      }
+      if (value === "1" || value === "1.") {
+        return "1000000"; // 如果输入1或1.，补零为1000000
+      }
+      // 否则将小数点右移6位
+      const parts = value.split(".");
+      if (parts.length === 1) {
+        return `${parts[0]}000000`; // 无小数部分时补6个0
+      }
+      const [integerPart, decimalPart] = parts;
+      const paddedDecimal = decimalPart.padEnd(6, "0"); // 补足6位小数
+      return `${integerPart}${paddedDecimal}`; // 返回移位后的值
+    };
+  
     const handleAddLiquidity = async () => {
-
       const token1Amount = token1AmountRef.current ? token1AmountRef.current.value : "";
       const token2Amount = token2AmountRef.current ? token2AmountRef.current.value : "";
-
+  
+      // 提交前格式化输入的金额
+      const formattedToken1Amount = formatTokenAmount(token1Amount);
+      const formattedToken2Amount = formatTokenAmount(token2Amount);
+  
       const transactionAddLiquidity: InputTransactionData = {
         data: {
           function: `${moduleAddress}::router::add_liquidity_entry`,
-          functionArguments:[selectedCoin1.metadata, selectedCoin2.metadata, false, token1Amount, token2Amount, 1, 1]
+          functionArguments: [selectedCoin1.metadata, selectedCoin2.metadata, false, formattedToken1Amount, formattedToken2Amount, 1, 1]
         }
       };
-
+  
       try {
-
         const responseAddLiquidity = await signAndSubmitTransaction(transactionAddLiquidity);
-        await aptos.waitForTransaction({transactionHash:responseAddLiquidity.hash})
-
-        //更新LP NFT和LP Token的余额
+        await aptos.waitForTransaction({ transactionHash: responseAddLiquidity.hash });
+  
+        // 更新LP NFT和LP Token的余额
         getLpNftUri();
         getLpTokenBalance();
-        
       } catch (error) {
-        console.log("error",error)
+        console.log("error", error);
       }
-
-      //重置输入框
-      if (token1AmountRef.current) token1AmountRef.current.value = "";
-      if (token2AmountRef.current) token2AmountRef.current.value = "";
-
+  
+      // 重置输入框
+      setDisplayToken1Amount("");
+      setDisplayToken2Amount("");
     };
-    
+  
     return (
       <>
-
-      <div className='box' >
-
-        <span className='box-span'>
-        Token1
-        </span>
-
-        <br />
-
-        <input 
-          className='box-input'
-          ref={token1AmountRef}
-          placeholder='0'
-        />
-
-        <CoinSelector 
-          selectedCoin={selectedCoin1} 
-          setSelectedCoin={setSelectedCoin1} 
-          coinList={filteredCoinListForToken1} 
-        />
-
-        
-      </div>
-
-      <div className='box' >
-
-        <span className='box-span'>
-        Token2
-        </span>
-
-        <br />
-
-        <input 
-          className='box-input'
-          ref={token2AmountRef}
-          placeholder='0'
-        />
-
-        <CoinSelector 
-          selectedCoin={selectedCoin2} 
-          setSelectedCoin={setSelectedCoin2} 
-          coinList={filteredCoinListForToken2} 
-        />
-
-      </div>
-
-      {(account === null) ? (
-        <Row justify={'center'}>
-          <WalletSelector />
-          <div style={{marginBottom:'5px'}}></div>
-        </Row>
-      ) : (
-        <Row justify={'center'}>
-          <Button className='submit-button' onClick={handleAddLiquidity}>
-            Add Liquidity
-          </Button>
-        </Row>
-      )}
-
-    </>
+        <div className='box'>
+          <span className='box-span'>Token1</span>
+          <br />
+          <input
+            className='box-input'
+            ref={token1AmountRef}
+            value={displayToken1Amount}
+            onChange={(e) => handleTokenInput(e, setDisplayToken1Amount)} // 处理输入
+            placeholder='0'
+          />
+          <CoinSelector
+            selectedCoin={selectedCoin1}
+            setSelectedCoin={setSelectedCoin1}
+            coinList={filteredCoinListForToken1}
+          />
+        </div>
+  
+        <div className='box'>
+          <span className='box-span'>Token2</span>
+          <br />
+          <input
+            className='box-input'
+            ref={token2AmountRef}
+            value={displayToken2Amount}
+            onChange={(e) => handleTokenInput(e, setDisplayToken2Amount)} // 处理输入
+            placeholder='0'
+          />
+          <CoinSelector
+            selectedCoin={selectedCoin2}
+            setSelectedCoin={setSelectedCoin2}
+            coinList={filteredCoinListForToken2}
+          />
+        </div>
+  
+        {account === null ? (
+          <Row justify={'center'}>
+            <WalletSelector />
+            <div style={{ marginBottom: '5px' }}></div>
+          </Row>
+        ) : (
+          <Row justify={'center'}>
+            <Button className='submit-button' onClick={handleAddLiquidity}>
+              Add Liquidity
+            </Button>
+          </Row>
+        )}
+      </>
     );
   };
+  
 
   // “移除”功能组件
   const RemoveLiquidity = () => {
-
+    // 用户在输入框中看到的值
+    const [displayLpTokenAmount, setDisplayLpTokenAmount] = useState("");
+  
     const lpTokentokenAmountRef = useRef<HTMLInputElement>(null);
-
+  
+    // 处理用户输入，只限制6位小数
+    const handleTokenInput = (e: React.ChangeEvent<HTMLInputElement>, setDisplayAmount: (value: string) => void) => {
+      const value = e.target.value;
+  
+      // 限制用户输入最多6位小数
+      if (/^\d*\.?\d{0,6}$/.test(value)) {
+        setDisplayAmount(value);
+      }
+    };
+  
+    // 在提交时补零
+    const formatTokenAmount = (value: string) => {
+      if (value === "" || value === "0") {
+        return "0";
+      }
+      if (value === "1" || value === "1.") {
+        return "1000000"; // 如果输入1或1.，补零为1000000
+      }
+      // 否则将小数点右移6位
+      const parts = value.split(".");
+      if (parts.length === 1) {
+        return `${parts[0]}000000`; // 无小数部分时补6个0
+      }
+      const [integerPart, decimalPart] = parts;
+      const paddedDecimal = decimalPart.padEnd(6, "0"); // 补足6位小数
+      return `${integerPart}${paddedDecimal}`; // 返回移位后的值
+    };
+  
     const handleRemoveLiquidity = async () => {
-
       const lpTokentokenAmount = lpTokentokenAmountRef.current ? lpTokentokenAmountRef.current.value : "";
-
+  
+      // 提交前格式化输入的金额
+      const formattedLpTokenAmount = formatTokenAmount(lpTokentokenAmount);
+  
       const transactionRemoveLiquidity: InputTransactionData = {
         data: {
           function: `${moduleAddress}::router::remove_liquidity_entry`,
-          functionArguments:[selectedCoin1.metadata, selectedCoin2.metadata, false, lpTokentokenAmount, 1, 1, account?.address]
+          functionArguments: [selectedCoin1.metadata, selectedCoin2.metadata, false, formattedLpTokenAmount, 1, 1, account?.address]
         }
       };
-
+  
       try {
-
         const responseRemoveLiquidity = await signAndSubmitTransaction(transactionRemoveLiquidity);
-        await aptos.waitForTransaction({transactionHash:responseRemoveLiquidity.hash})
-
-        //更新LP NFT和LP Token的余额
+        await aptos.waitForTransaction({ transactionHash: responseRemoveLiquidity.hash });
+  
+        // 更新LP NFT和LP Token的余额
         getLpNftUri();
         getLpTokenBalance();
-        
       } catch (error) {
-        console.log("error",error)
+        console.log("error", error);
       }
-
-      //重置输入框
-      if (lpTokentokenAmountRef.current) lpTokentokenAmountRef.current.value = "";
-
+  
+      // 重置输入框
+      setDisplayLpTokenAmount("");
     };
-
+  
     return (
       <>
-
-      <div className='box' >
-
-        <span className='box-span'>
-        LP Token
-        </span>
-
-        <br />
-
-        <input 
-          className='box-input'
-          ref={lpTokentokenAmountRef}
-          placeholder='0'
-        />
-
-        <span className='box-span-lp-token-balance'>
-        LP Token Balance : {lpTokenBalance}
-        </span>
-
-        <div className="coin-selector-button-container">
-
-          <CoinSelector 
-            selectedCoin={selectedCoin1} 
-            setSelectedCoin={setSelectedCoin1} 
-            coinList={filteredCoinListForToken1} 
+        <div className='box'>
+          <span className='box-span'>LP Token</span>
+          <br />
+          <input
+            className='box-input'
+            ref={lpTokentokenAmountRef}
+            value={displayLpTokenAmount}
+            onChange={(e) => handleTokenInput(e, setDisplayLpTokenAmount)} // 处理输入
+            placeholder='0'
           />
-
-          <CoinSelector 
-            selectedCoin={selectedCoin2} 
-            setSelectedCoin={setSelectedCoin2} 
-            coinList={filteredCoinListForToken2} 
-          />
-
+          <span className='box-span-lp-token-balance'>
+            LP Token Balance : {lpTokenBalance ? (parseFloat(lpTokenBalance) / 1_000_000).toString() : "0"} {/* 将lpTokenBalance除以1000000 */}
+          </span>
+  
+          <div className="coin-selector-button-container">
+            <CoinSelector
+              selectedCoin={selectedCoin1}
+              setSelectedCoin={setSelectedCoin1}
+              coinList={filteredCoinListForToken1}
+            />
+            <CoinSelector
+              selectedCoin={selectedCoin2}
+              setSelectedCoin={setSelectedCoin2}
+              coinList={filteredCoinListForToken2}
+            />
+          </div>
         </div>
-        
-      </div>
-
-      {(account === null) ? (
-        <Row justify={'center'}>
+  
+        {account === null ? (
+          <Row justify={'center'}>
             <WalletSelector />
-            <div style={{marginBottom:'5px'}}></div>
-        </Row>
-      ) : (
-        <Row justify={'center'}>
-          <Button className='submit-button' onClick={handleRemoveLiquidity}>
-            Remove Liquidity
-          </Button>
-        </Row>
-      )}
-
-    </>
+            <div style={{ marginBottom: '5px' }}></div>
+          </Row>
+        ) : (
+          <Row justify={'center'}>
+            <Button className='submit-button' onClick={handleRemoveLiquidity}>
+              Remove Liquidity
+            </Button>
+          </Row>
+        )}
+      </>
     );
   };
+  
 
   const handleMintTestFA = async () => {
 
@@ -770,7 +839,7 @@ export default function SwapFeature() {
         function: `${mintFaAddress}::launchpad1::mint_fa`,
         functionArguments:[
           "0x6184d78efca94412c86a924d76795e2bc7c7185fcc63c425a45a02749e58e731",
-          100000000000
+          1_000_000_000_000
         ]
       }
     };
@@ -780,7 +849,7 @@ export default function SwapFeature() {
         function: `${mintFaAddress}::launchpad1::mint_fa`,
         functionArguments:[
           "0xdff567dd9ac79fd8f18cb7150c7c487d59bbec2334b0707a17cc9fafee710e6e",
-          100000000000
+          1_000_000_000_000
         ]
       }
     };
@@ -790,7 +859,7 @@ export default function SwapFeature() {
         function: `${mintFaAddress}::launchpad1::mint_fa`,
         functionArguments:[
           "0xf4ead8c3e1b47837ddae82e9a58e8e6d3fb719fe538bc71a8476444e8ceb4f3c",
-          100000000000
+          1_000_000_000_000
         ]
       }
     };
@@ -800,7 +869,7 @@ export default function SwapFeature() {
         function: `${mintFaAddress}::launchpad1::mint_fa`,
         functionArguments:[
           "0xa945fdeded2e060125f502de64886ce5e7b0849647afa1004dff511b9e990038",
-          100000000000
+          1_000_000_000_000
         ]
       }
     };
