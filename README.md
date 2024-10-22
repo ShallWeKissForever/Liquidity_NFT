@@ -21,11 +21,11 @@
 
 切换网络到testnet
 
-<img src="https://github.com/user-attachments/assets/5e9c5135-e973-4305-baea-5dcbc54d4900" alt="image" width="300" />
+<img src="https://github.com/user-attachments/assets/5e216935-ebc4-437f-870e-f5ac5336b870" alt="image" width="300" />
 
 在水龙头领取测试币用于支付gas
 
-<img src="https://github.com/user-attachments/assets/490161c4-a99b-4b51-8c0b-e2efc7e35a85" alt="image" width="300" />
+<img src="https://github.com/user-attachments/assets/c69714fa-e912-4bc7-bc30-c098a4a74d80" alt="image" width="300" />
 
 1.铸造要使用的FA
 
@@ -63,7 +63,8 @@
 
 ![image](https://github.com/user-attachments/assets/2ee668c4-12e5-4dbc-bdc3-e056752338d2)
 
-第一个账户的NFT样式也发生了 变化
+第一个账户的NFT样式也发生了变化
+
 ![image](https://github.com/user-attachments/assets/2bbea4a1-7e14-470a-878a-ecc4f525ea85)
 
 
