@@ -8,7 +8,7 @@ import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
 export default function SwapFeature() {
 
   //合约发布的账户地址
-  const moduleAddress = "0x3a689c0f3956a4b847d9778fb227490a62c2e5c34e6fc31972c3811434336df2";
+  const moduleAddress = "0x54a135166d46d1b559dbe196e65b8a7f6833a3713b01cd4dc96d2f170be4460b";
   //mint测试币地址
   const mintFaAddress = "0x71dfdf10572f2d5ba5a66ccbf6e7a785d201fdb4bda312a870deeec3d8fd2f96";
 

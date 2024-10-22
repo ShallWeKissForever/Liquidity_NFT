@@ -441,6 +441,7 @@ module contract::liquidity_pool {
         fungible_asset_2: FungibleAsset,
         is_stable: bool,
     ) acquires FeesAccounting, LiquidityPool, ResourceAccountCap, MintedAddressStore, NFTProperties, NFTRefs, LiquidityPoolConfigs {
+        let lp_address = signer::address_of(lp);
         let token_1 = fungible_asset::metadata_from_asset(&fungible_asset_1);
         let token_2 = fungible_asset::metadata_from_asset(&fungible_asset_2);
         let token_1_copy = *&token_1;
@@ -450,7 +451,7 @@ module contract::liquidity_pool {
         };
         // The LP store needs to exist before we can mint LP tokens.
         let pool = liquidity_pool(token_1, token_2, is_stable);
-        let lp_store = ensure_lp_token_store(signer::address_of(lp), pool);
+        let lp_store = ensure_lp_token_store(lp_address, pool);
         let amount_1 = fungible_asset::amount(&fungible_asset_1);
         let amount_2 = fungible_asset::amount(&fungible_asset_2);
         assert!(amount_1 > 0 && amount_2 > 0, EZERO_AMOUNT);
@@ -484,17 +485,17 @@ module contract::liquidity_pool {
         // We need to update the amount of rewards claimable by this LP token store if they already have a previous
         // balance. This ensures that their update balance would not lead to earning a larger portion of the fees
         // retroactively.
-        update_claimable_fees(signer::address_of(lp), pool);
+        update_claimable_fees(lp_address, pool);
 
         // Mint the corresponding amount of LP tokens to the LP.
         let lp_tokens = fungible_asset::mint(mint_ref, liquidity_token_amount);
         fungible_asset::deposit_with_ref(&pool_data.lp_token_refs.transfer_ref, lp_store, lp_tokens);
 
 
-        let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(address_of(lp), pool);
+        let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp_address, pool);
 
         let  isMinted = &mut borrow_global_mut<MintedAddressStore>(liquidity_pool_address(token_1, token_2, is_stable)).minted;
-        if (*smart_table::borrow_mut_with_default( isMinted, address_of(lp), @0x0) == @0x0) {
+        if (*smart_table::borrow_mut_with_default( isMinted, lp_address, @0x0) == @0x0) {
 
             lp_nft_mint(
                 lp,
@@ -505,11 +506,11 @@ module contract::liquidity_pool {
                 lp_token_percentage
             );
 
-            lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage, pool);
+            lp_nft_update_properties(lp_address, (claimable_fees as u256), lp_token_percentage, pool);
 
         } else {
 
-            lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage, pool);
+            lp_nft_update_properties(lp_address, (claimable_fees as u256), lp_token_percentage, pool);
 
         };
     }
@@ -585,7 +586,7 @@ module contract::liquidity_pool {
 
             let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp_address, pool);
 
-            lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage, pool);
+            lp_nft_update_properties(lp_address, (claimable_fees as u256), lp_token_percentage, pool);
 
         };
 
@@ -939,7 +940,7 @@ module contract::liquidity_pool {
     }
 
     fun lp_nft_update_properties(
-        lp: &signer,
+        lp: address,
         new_fees: u256,
         new_ltp: u256,
         pool: Object<LiquidityPool>
@@ -948,18 +949,19 @@ module contract::liquidity_pool {
         let pool_address = object::object_address(&pool);
 
         let table = &borrow_global<MintedAddressStore>( pool_address ).minted;
-        let token_address = smart_table::borrow( table, address_of(lp) );
+        let token_address = smart_table::borrow( table, lp );
         let token_properties =  borrow_global_mut<NFTProperties>(*token_address);
 
-        token_properties.hold_time = (timestamp::now_seconds() as u256) - token_properties.mint_time;
+        let new_hold_time = (timestamp::now_seconds() as u256) - token_properties.mint_time;
+        token_properties.hold_time = new_hold_time;
         token_properties.fees = new_fees;
         token_properties.lp_token_percentage = new_ltp;
 
-        lp_nft_update_uri(token_address, new_fees, new_ltp);
+        lp_nft_update_uri(token_address, new_hold_time, new_fees, new_ltp);
 
         event::emit(
             UpdateEvent {
-                owner: address_of(lp),
+                owner: lp,
                 token_id: *token_address,
                 time_stamp: (timestamp::now_seconds() as u256),
                 fees: new_fees,
@@ -1004,69 +1006,94 @@ module contract::liquidity_pool {
 
     }
 
-    fun lp_nft_update_uri(token_address: &address, fees: u256, ltp: u256) acquires NFTRefs {
+    fun lp_nft_update_uri(token_address: &address,hold_time:u256, fees: u256, ltp: u256) acquires NFTRefs {
 
-        if (ltp >= 50) {
+        let nft_uri = string::utf8(b"https://raw.githubusercontent.com/ShallWeKissForever/stackedit-app-data/refs/heads/master/imgs/LiquidityNFT/");
+        let stop = false;
 
+        if (ltp > 90) {
             if (fees >= 10000){
-                token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(BLOCK_OF_DIAMOND));
-                return
+                string::append(&mut nft_uri, string::utf8(b"999"));
+                stop = true;
             };
-
-            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(DIAMOND));
-
-        } else if (ltp >= 37) {
-
+            if (!stop) string::append(&mut nft_uri, string::utf8(b"9"));
+        } else if (ltp > 80 && !stop) {
             if (fees >= 10000){
-                token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(BLOCK_OF_EMERALD));
-                return
+                string::append(&mut nft_uri, string::utf8(b"888"));
+                stop = true;
             };
-
-            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(EMERALD));
-
-        } else if (ltp >= 25) {
-
+            if (!stop) string::append(&mut nft_uri, string::utf8(b"8"));
+        } else if (ltp > 70 && !stop) {
             if (fees >= 10000){
-                token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(BLOCK_OF_GOLD));
-                return
+                string::append(&mut nft_uri, string::utf8(b"777"));
+                stop = true;
             };
-
-            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(GOLD));
-
-        } else if (ltp >= 12) {
-
+            if (!stop) string::append(&mut nft_uri, string::utf8(b"7"));
+        } else if (ltp > 60 && !stop) {
             if (fees >= 10000){
-                token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(BLOCK_OF_IRON));
-                return
+                string::append(&mut nft_uri, string::utf8(b"666"));
+                stop = true;
             };
-
-            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(IRON));
-
-        } else {
-
+            if (!stop) string::append(&mut nft_uri, string::utf8(b"6"));
+        } else if (ltp > 50 && !stop) {
             if (fees >= 10000){
-                token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(BLOCK_OF_COAL));
-                return
+                string::append(&mut nft_uri, string::utf8(b"555"));
+                stop = true;
             };
-
-            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, string::utf8(COAL));
+            if (!stop) string::append(&mut nft_uri, string::utf8(b"5"));
+        } else if (ltp > 40 && !stop) {
+            if (fees >= 10000){
+                string::append(&mut nft_uri, string::utf8(b"444"));
+                stop = true;
+            };
+            if (!stop) string::append(&mut nft_uri, string::utf8(b"4"));
+        } else if (ltp > 30 && !stop) {
+            if (fees >= 10000){
+                string::append(&mut nft_uri, string::utf8(b"333"));
+                stop = true;
+            };
+            if (!stop) string::append(&mut nft_uri, string::utf8(b"3"));
+        } else if (ltp > 20 && !stop) {
+            if (fees >= 10000){
+                string::append(&mut nft_uri, string::utf8(b"222"));
+                stop = true;
+            };
+            if (!stop) string::append(&mut nft_uri, string::utf8(b"2"));
+        } else if (ltp > 10 && !stop) {
+            if (fees >= 10000){
+                string::append(&mut nft_uri, string::utf8(b"111"));
+                stop = true;
+            };
+            if (!stop) string::append(&mut nft_uri, string::utf8(b"1"));
+        } else if (!stop) {
+            if (fees >= 10000){
+                string::append(&mut nft_uri, string::utf8(b"000"));
+                stop = true;
+            };
+            if (!stop) string::append(&mut nft_uri, string::utf8(b"0"));
         };
 
-    }
-
-    public fun lp_nft_request_for_update_uri(
-        lp: address,
-        token_address: &address,
-        token_1: Object<Metadata>,
-        token_2: Object<Metadata>,
-        is_stable: bool
-    ) acquires NFTRefs, FeesAccounting, ResourceAccountCap {
-
-        let pool = liquidity_pool(token_1, token_2, is_stable);
-
-        let (fees, ltp) = lp_nft_get_fees_and_plt(lp, pool);
-
-        lp_nft_update_uri(token_address, (fees as u256), ltp);
+        if (hold_time > 2628000) {
+            string::append(&mut nft_uri, string::utf8(b"orange%20background.png"));
+            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, nft_uri);
+            return
+        } else if (hold_time > 604800) {
+            string::append(&mut nft_uri, string::utf8(b"purple%20background.png"));
+            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, nft_uri);
+            return
+        } else if (hold_time > 86400) {
+            string::append(&mut nft_uri, string::utf8(b"blue%20background.png"));
+            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, nft_uri);
+            return
+        } else if (hold_time > 3600) {
+            string::append(&mut nft_uri, string::utf8(b"green%20background.png"));
+            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, nft_uri);
+            return
+        } else {
+            string::append(&mut nft_uri, string::utf8(b"white%20background.png"));
+            token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, nft_uri);
+            return
+        }
 
     }
 
@@ -1095,15 +1122,17 @@ module contract::liquidity_pool {
         token_1: Object<Metadata>,
         token_2: Object<Metadata>,
         is_stable: bool,
-    ): String acquires ResourceAccountCap, MintedAddressStore, NFTRefs, FeesAccounting {
+    ): String acquires ResourceAccountCap, MintedAddressStore, NFTRefs, FeesAccounting, NFTProperties {
         let pool = liquidity_pool(token_1, token_2, is_stable);
         let pool_address = object::object_address(&pool);
         let isMinted = &mut borrow_global_mut<MintedAddressStore>(pool_address).minted;
         let nft_address = smart_table::borrow(isMinted, lp);
         let nft_object = object::address_to_object<Token>(*nft_address);
 
+        let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp, pool);
+
         //update before query
-        lp_nft_request_for_update_uri(lp, nft_address, token_1, token_2, is_stable);
+        lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage, pool);
 
         token::uri(nft_object)
     }
