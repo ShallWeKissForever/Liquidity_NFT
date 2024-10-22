@@ -353,14 +353,18 @@ export default function SwapFeature() {
   
     return (
       <div className='token-selector-div'>
-        <Button className='token-selector-button' type="primary" onClick={showModal} disabled={fetchingTokenList}>
+        <Button className='token-selector-button' type="primary" onClick={showModal} disabled={fetchingTokenList}> 
           {/* 更新tokenList时禁用按钮 */}
           {fetchingTokenList === false ? (
             <>
               {selectedToken.name !== 'Select token' ? 
                 <img className='token-selector-button-token-img' src={selectedToken.uri} alt={selectedToken.symbol} /> : 
-                ''}
-              {selectedToken.name !== 'Select token' ? `${selectedToken.symbol}` : 'Select token'}
+                ''
+              }
+              {selectedToken.name !== 'Select token' ? 
+                <span className='token-selector-button-token-text'>{selectedToken.symbol}</span> : 
+                <span>Select token</span>
+              }
             </>
           ) : (
             'Loading...'
