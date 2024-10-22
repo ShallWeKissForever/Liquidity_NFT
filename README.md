@@ -1,5 +1,7 @@
 ### 项目概述：Liquidity_NFT
 
+**项目网址**：http://162.14.114.2/
+
 **项目目标**：将NFT与流动性交换（swap）结合，为用户在提供流动性时生成一个动态NFT，旨在提升用户的投资体验。
 
 **NFT信息内容**：
@@ -18,10 +20,12 @@
 0.在浏览器安装Petra钱包扩展程序并创建账户
 
 切换网络到testnet
-![image](https://github.com/user-attachments/assets/5e9c5135-e973-4305-baea-5dcbc54d4900)
+
+![image](https://github.com/user-attachments/assets/5e9c5135-e973-4305-baea-5dcbc54d4900 =200x)
 
 在水龙头领取测试币用于支付gas
-![image](https://github.com/user-attachments/assets/490161c4-a99b-4b51-8c0b-e2efc7e35a85)
+
+![image](https://github.com/user-attachments/assets/490161c4-a99b-4b51-8c0b-e2efc7e35a85 =200x)
 
 1.铸造要使用的FA
 
