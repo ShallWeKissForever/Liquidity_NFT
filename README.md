@@ -13,65 +13,76 @@
 **用户体验**：
 该项目旨在提供直观且互动的投资体验，降低DeFi的学习门槛，通过创新设计激励用户长期参与，同时为NFT赋予更广泛的实用性和交易价值。这种结合不仅增强了用户的参与感，还能提升市场流动性和NFT的市场价值。
 
-操作示例：
+**操作示例**：
+
+0.在浏览器安装Petra钱包扩展程序并创建账户
+
+切换网络到testnet
+![image](https://github.com/user-attachments/assets/5e9c5135-e973-4305-baea-5dcbc54d4900)
+
+在水龙头领取测试币用于支付gas
+![image](https://github.com/user-attachments/assets/490161c4-a99b-4b51-8c0b-e2efc7e35a85)
 
 1.铸造要使用的FA
 
-我们先点击Mint铸造测试用的FA用于接下来要进行的操作
+我们先点击`Mint Test Token`铸造测试用的FA用于接下来要进行的操作
 
-decimal = 6
-- FA1  BTC  0x6184d78efca94412c86a924d76795e2bc7c7185fcc63c425a45a02749e58e731
-- FA2  APT  0xdff567dd9ac79fd8f18cb7150c7c487d59bbec2334b0707a17cc9fafee710e6e
-- FA3  ETH  0xf4ead8c3e1b47837ddae82e9a58e8e6d3fb719fe538bc71a8476444e8ceb4f3c
-- FA4  SUI  0xa945fdeded2e060125f502de64886ce5e7b0849647afa1004dff511b9e990038
+小数位数decimal = 6
+- FA3  BTC  0x6184d78efca94412c86a924d76795e2bc7c7185fcc63c425a45a02749e58e731
+- FA4  ETH  0xf4ead8c3e1b47837ddae82e9a58e8e6d3fb719fe538bc71a8476444e8ceb4f3c
+- FA5  APT  0xdff567dd9ac79fd8f18cb7150c7c487d59bbec2334b0707a17cc9fafee710e6e
+- FA6  SUI  0xa945fdeded2e060125f502de64886ce5e7b0849647afa1004dff511b9e990038
 
-![image](https://github.com/user-attachments/assets/4239216a-41d0-4c4f-8cf2-373079d5a998)
+![image](https://github.com/user-attachments/assets/80dafc9d-427a-49c8-8790-9c60e66daaf6)
 
 2.创建流动性池
 
-用APT和ETH这两个FA的Metadata创建流动性池
+用BTC和APT这两个代币的的Metadata创建流动性池
 
-![image](https://github.com/user-attachments/assets/866b5ee1-c67c-4452-b550-c9e91961616f)
+![image](https://github.com/user-attachments/assets/0e2f8e36-7ab5-42d9-8e73-a953041d62e9)
 
 3. 添加流动性
 
 可以通过弹窗来选择要进行操作的Token
 
-![image](https://github.com/user-attachments/assets/cc2a0d5a-42a3-44f6-8bd1-395ac18176db)
-![image](https://github.com/user-attachments/assets/7947f088-8b41-453e-bb50-bd82ccb2f9e7)
+![image](https://github.com/user-attachments/assets/afff7ebd-f3d3-46f0-8466-a10466b15f90)
+![image](https://github.com/user-attachments/assets/520bf1dd-7749-4527-8123-43cf390d2164)
 
-我们减少了对应数量的FA，并获得了 LP Token和 LP NFT
+添加FA，会获得LP Token和LP NFT，LP NFT会展示在页面的左边
 
-![image](https://github.com/user-attachments/assets/ee1d2357-8522-4390-a640-cb4459f67228)
+![image](https://github.com/user-attachments/assets/7c5240d8-411d-4698-8388-297d34951784)
+![image](https://github.com/user-attachments/assets/4e715100-6322-449d-bd0e-30cef3f4dc7e)
 
 4. 用另一个账户添加流动性
 
 切换到另一个账户并添加流动性，可以看到，由于 LP Token 持有的份额不同，NFT的样式也是不一样的
 
-![image](https://github.com/user-attachments/assets/33185ea6-19ef-4bc5-8550-10f2d9ea07f2)
-![image](https://github.com/user-attachments/assets/8cef67a2-e34d-4a25-b102-88ed281da1ae)
+![image](https://github.com/user-attachments/assets/2ee668c4-12e5-4dbc-bdc3-e056752338d2)
 
+第一个账户的NFT样式也发生了 变化
+![image](https://github.com/user-attachments/assets/2bbea4a1-7e14-470a-878a-ecc4f525ea85)
 
 
 5. 进行swap
 
-填入要进行swap的数量
+填入要出售的代币数量，即可购买另一种代币
 
-![image](https://github.com/user-attachments/assets/a90c01ad-cd36-445f-a898-046d3f269b12)
+![image](https://github.com/user-attachments/assets/a5777d1d-3562-4bcc-bb70-1172acffc589)
 
 继续进行swap使LP的手续费快速累积，当可提取的手续费达到一定阈值的时候，NFT的样式也会改变（你可以一眼看出你获得的手续费已经积累了很多了）
 
-![image](https://github.com/user-attachments/assets/8d46b024-b8a3-4bc9-a253-fc78748dc1da)
+![image](https://github.com/user-attachments/assets/7d79199d-f174-426b-9435-3d4cecd9d92e)
+![image](https://github.com/user-attachments/assets/914e9b33-5bf8-4600-909d-d7b4006039b7)
 
 
 6. 移除流动性
 
 移除所有的 LP Token
 
-![image](https://github.com/user-attachments/assets/088dc819-ed79-4354-a724-e6fb73d7abe3)
+![image](https://github.com/user-attachments/assets/56089571-01ab-45a8-8d8c-a57091601152)
 
 
 LP Token为0时，LP NFT 也被销毁了
 
-![image](https://github.com/user-attachments/assets/32114a97-b7c5-4025-9957-bac9409335a5)
+![image](https://github.com/user-attachments/assets/ca81db13-d47c-4a96-afa2-17c3009ebaf8)
 
