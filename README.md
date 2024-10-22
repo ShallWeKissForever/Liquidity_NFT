@@ -21,11 +21,11 @@
 
 切换网络到testnet
 
-<img src="https://github.com/user-attachments/assets/5e9c5135-e973-4305-baea-5dcbc54d4900" alt="image" width="200" />
+<img src="https://github.com/user-attachments/assets/5e9c5135-e973-4305-baea-5dcbc54d4900" alt="image" width="300" />
 
 在水龙头领取测试币用于支付gas
 
-![image](https://github.com/user-attachments/assets/490161c4-a99b-4b51-8c0b-e2efc7e35a85 =200x)
+<img src="https://github.com/user-attachments/assets/490161c4-a99b-4b51-8c0b-e2efc7e35a85" alt="image" width="300" />
 
 1.铸造要使用的FA
 
