@@ -1,11 +1,168 @@
 * {
-    font-weight: bold;
+    font-weight: normal;
 }
 
-.wallet-button {
+.wallet-button-div {
+    margin-left: 220px; /* 为什么要110的2倍？ */
+    margin-bottom: 5px;
+}
+
+/* .wallet-button {
     height:50px;
-    width:25vw;
-    background-color: #1677ff;
+    width:450px;
+    border:0px;
+    color: #72a1ff;
+    background-color: #f4f8ff;
+} */
+
+/* Header中的WalletSelector样式 */
+.header-wallet .wallet-button {
+    width: 130px;
+    height: 40px;
+    border: 0px;
+    color: #72a1ff;
+    background-color: #f4f8ff;
+}
+
+/* Body中的WalletSelector保持原样 */
+.wallet-button-div .wallet-button {
+    height: 50px;
+    width: 450px;
+    border: 0px;
+    color: #72a1ff;
+    background-color: #f4f8ff;
+}
+
+.wallet-button:hover {
+    color: #3c83fe !important;
+    background-color: #ebf2fe !important;
+}
+
+.feature-button-div {
+    margin-bottom: 10px;
+    padding-left: 90px;
+    width: 280px;
+}
+
+.feature-button {
+    color: black;
+    height: 35px;
+    width: 60px;
+    border: 0px;
+    border-radius: 17px;
+    margin-right: 10px;
+    transition: all 0.1s ease;
+}
+
+/* 添加新的激活状态类 */
+.feature-button-active {
+    color: black !important;
+    background-color: #f5f5f5 !important;
+}
+
+.feature-button-inactive {
+    color: #888888 !important;
+    background-color: white !important;
+}
+
+.feature-button:hover {
+    color: black !important;
+}
+
+.box {
+    background-color:#f5f5f5; 
+    margin-bottom:5px; 
+    height:120px; 
+    width: 450px;
+    border-radius:10px;
+}
+
+.box-span {
+    margin-left:15px;
+    margin-top:15px;
+    display: inline-block;
+}
+
+.box-input {
+    height:50px;
+    width:300px;
+    margin-left:15px;
+    margin-top:5px;
+    font-size:40px;
+    font-weight:normal;
+    background-color:#f5f5f5;
+    border-width:0;
+    border-color:#f5f5f5;
+    outline:none;
+}
+
+.box-span-lp-token-balance {
+    width: 250px;
+    display: inline-block;
+    position: relative;
+    left: 15px;
+    font-size: 12.5px;
+}
+
+.display-buy-token-amount {
+    color: #757575;
+}
+
+.box-address-input {
+    height:50px;
+    width:415px;
+    margin-left:15px;
+    margin-top:5px;
+    font-size:20px;
+    font-weight:400;
+    background-color:#f5f5f5;
+    border-width:0;
+    border-color:#f5f5f5;
+    outline:none;
+}
+
+.token-selector-div {
+    width: 100px;
+    position:relative; 
+    left:325px; 
+    bottom:45px;
+}
+
+.token-selector-button-container {
+    display: flex;         /*使用flexbox布局 */
+    flex-direction: column; /* 设置为列方向，元素垂直排列 */
+    gap: 5px;              /* 两个 tokenSelector 组件之间的垂直间距 */
+    margin-top: -25px;     /* 向上移动 */
+}
+
+.token-selector-button-container > :first-child {
+    margin-top: -10px; /* 通过负 margin 将第一个元素上移 */
+}
+
+.token-selector-button {
+    width: 100px;
+    padding-bottom: 5px;
+    color: black;
+    background-color: #ffffff;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1); /* 添加柔和的阴影效果 */
+}
+
+.token-selector-button:hover {
+    color: black !important;
+    background-color: #f1f2f3 !important;
+}
+
+.token-selector-button-token-img {
+    position: relative;
+    top: 3px;
+    right: 5px;
+    width: 20px;
+    border-radius: 10px;
+}
+
+.token-selector-button-token-text {
+    position: relative;
+    bottom: 1px;
 }
 
 .token-selector-modal-row {
@@ -31,41 +188,6 @@
     justify-content: center; /* 垂直居中信息列 */
 }
 
-.token-selector-button-container {
-    display: flex;         /*使用flexbox布局 */
-    flex-direction: column; /* 设置为列方向，元素垂直排列 */
-    gap: 5px;              /* 两个 tokenSelector 组件之间的垂直间距 */
-    margin-top: -25px;     /* 向上移动 */
-}
-
-.token-selector-button-container > :first-child {
-    margin-top: -10px; /* 通过负 margin 将第一个元素上移 */
-}
-
-.token-selector-div {
-    position:relative; 
-    left:17.5vw; 
-    bottom:45px;
-}
-
-.token-selector-button {
-    width: 100px;
-    padding-bottom: 5px;
-}
-
-.token-selector-button-token-img {
-    position: relative;
-    top: 3px;
-    right: 5px;
-    width: 20px;
-    border-radius: 10px;
-}
-
-.token-selector-button-token-text {
-    position: relative;
-    bottom: 1px;
-}
-
 .token-selector-modal-token-img {
     width: 30px;
     border-radius: 15px;
@@ -78,80 +200,43 @@
     font-size: large;
     font-weight:500;
 }
+
 .token-selector-modal-token-metadata {
     font-size: 12.5px;
     font-weight:normal;
 }
 
-.box {
-    background-color:#f5f5f5; 
-    margin-bottom:5px; 
-    height:120px; 
-    border-radius:10px;
-}
 
-.box-span {
-    margin-left:15px;
-    margin-top:15px;
-    display: inline-block;
-}
-
-.box-input {
-    height:50px;
-    width:15vw;
-    margin-left:15px;
-    margin-top:5px;
-    font-size:40px;
-    font-weight:normal;
-    background-color:#f5f5f5;
-    border-width:0;
-    border-color:#f5f5f5;
-    outline:none;
-}
-
-.box-span-lp-token-balance {
-    width: 250px;
-    display: inline-block;
-    position: relative;
-    left: 15px;
-    font-size: 12.5px;
-}
-
-.display-buy-token-amount {
-    color: #757575;
-}
-
-.box-address-input {
-    height:50px;
-    width:20vw;
-    margin-left:15px;
-    margin-top:5px;
-    font-size:20px;
-    font-weight:400;
-    background-color:#f5f5f5;
-    border-width:0;
-    border-color:#f5f5f5;
-    outline:none;
-}
-
-.feature-button-div {
-    margin-bottom: 10px;
-}
-
-.feature-button {
-    height:35px;
-    width:60px;
-    border:0px;
-    border-radius:17px;
-    margin-right:10px;
+.submit-button-div {
+    width:230px;
 }
 
 .submit-button {
     height:50px;
-    width:25vw;
+    width:450px;
     margin-bottom: 5px;
-    color:white;
-    background-color:#1677ff;
+    border:0px;
+    color: #72a1ff;
+    background-color: #f4f8ff;
+    box-shadow: none;
+}
+
+.submit-button:hover {
+    color: #3c83fe !important;
+    background-color: #ebf2fe !important;
+}
+
+.swap-button {
+    color: black;
+    background-color: #ffffff;
+    width: 200px;
+    position: absolute;
+    top: 150px;
+    left: 11.3vw;
+}
+
+.swap-button-img {
+    width: 20px;
 }
 
 .nft-img-box {
@@ -174,14 +259,13 @@
     font-size: small;
 }
 
-.swap-button {
-    background-color: #1677ff;
-    width: 20px;
-    position: absolute;
-    top: 150px;
-    left: 11.3vw;
+/* 添加淡入淡出动画 */
+@keyframes fade {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
 
-.swap-button-img {
-    width: 20px;
+/* 添加淡入淡出动画 */
+.box, .submit-button-div, .feature-button-div, .wallet-button-div {
+    animation: fade 0.2s ease-in-out;
 }
