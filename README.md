@@ -1,5 +1,7 @@
 ### 项目概述：Liquidity_NFT
 
+**项目地址**：[https://liquidity-nft.vercel.app/](https://liquidity-nft.vercel.app/)
+
 **项目目标**：本项目旨在将 NFT 与流动性交换（swap）相结合，为用户在提供流动性时生成动态 NFT，从而提升投资体验。
 
 #### NFT 信息内容：
