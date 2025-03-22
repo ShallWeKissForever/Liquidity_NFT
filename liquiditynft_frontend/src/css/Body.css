@@ -258,14 +258,3 @@
 .nft-font {
     font-size: small;
 }
-
-/* 添加淡入淡出动画 */
-@keyframes fade {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-}
-
-/* 添加淡入淡出动画 */
-.box, .submit-button-div, .feature-button-div, .wallet-button-div {
-    animation: fade 0.2s ease-in-out;
-}
