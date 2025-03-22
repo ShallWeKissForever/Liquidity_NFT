@@ -5,3 +5,8 @@
     color: #72a1ff;
     background-color: #f4f8ff;
 }
+
+.mint-button:hover {
+    color: #3c83fe !important;
+    background-color: #ebf2fe !important;
+}
