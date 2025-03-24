@@ -253,6 +253,7 @@
 .nft-img {
     width: 113px;
     margin-top: 10px;
+    border-radius: 10px;  /* 添加圆角效果 */
 }
 
 .nft-font {
