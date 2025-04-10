@@ -919,7 +919,7 @@ export default function SwapFeature() {
           )}
           {lpNftUri === '' && (
             <>
-              <img src={'https://github.com/ShallWeKissForever/stackedit-app-data/blob/master/imgs/LiquidityNFT/NoNFT.png?raw=true'} alt="NoNFT" className='nft-img' />
+              <img src={'https://github.com/ShallWeKissForever/Liquidity_NFT/blob/main/liquiditynft_nft_image/NoNFT.png?raw=true'} alt="NoNFT" className='nft-img' />
               <p className='nft-font'>{t('please_select_token')}</p>
             </>
           )}

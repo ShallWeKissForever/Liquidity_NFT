@@ -1011,7 +1011,7 @@ module contract::liquidity_pool {
 
     fun lp_nft_update_uri(token_address: &address,hold_time:u256, fees: u256, ltp: u256) acquires NFTRefs {
 
-        let nft_uri = string::utf8(b"https://raw.githubusercontent.com/ShallWeKissForever/stackedit-app-data/refs/heads/master/imgs/LiquidityNFT/");
+        let nft_uri = string::utf8(b"https://raw.githubusercontent.com/ShallWeKissForever/Liquidity_NFT/refs/heads/main/liquiditynft_nft_image/");
         let stop = false;
 
         if (ltp > 90) {
