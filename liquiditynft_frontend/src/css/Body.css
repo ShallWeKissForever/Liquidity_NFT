@@ -2,8 +2,27 @@
     font-weight: normal;
 }
 
+body {
+    margin-top: 64px;
+    background-color: #f4f2ff;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* 添加粒子容器样式 */
+#particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
 .wallet-button-div {
-    margin-left: 220px; /* 为什么要110的2倍？ */
+    margin-left: 220px;
+    /* 为什么要110的2倍？ */
     margin-bottom: 5px;
 }
 
@@ -56,44 +75,44 @@
 
 /* 添加新的激活状态类 */
 .feature-button-active {
-    color: black !important;
-    background-color: #f5f5f5 !important;
+    color: #72a1ff !important;
+    background-color: #f4f8ff !important;
 }
 
 .feature-button-inactive {
     color: #888888 !important;
-    background-color: white !important;
+    background-color: #ffffff !important;
 }
 
 .feature-button:hover {
-    color: black !important;
+    color: #72a1ff !important;
 }
 
 .box {
-    background-color:#f5f5f5; 
-    margin-bottom:5px; 
-    height:120px; 
+    background-color: #ffffff;
+    margin-bottom: 5px;
+    height: 120px;
     width: 450px;
-    border-radius:10px;
+    border-radius: 10px;
 }
 
 .box-span {
-    margin-left:15px;
-    margin-top:15px;
+    margin-left: 15px;
+    margin-top: 15px;
     display: inline-block;
 }
 
 .box-input {
-    height:50px;
-    width:300px;
-    margin-left:15px;
-    margin-top:5px;
-    font-size:40px;
-    font-weight:normal;
-    background-color:#f5f5f5;
-    border-width:0;
-    border-color:#f5f5f5;
-    outline:none;
+    height: 50px;
+    width: 300px;
+    margin-left: 15px;
+    margin-top: 5px;
+    font-size: 40px;
+    font-weight: normal;
+    background-color: #ffffff;
+    border-width: 0;
+    border-color: #f5f5f5;
+    outline: none;
 }
 
 .box-span-lp-token-balance {
@@ -109,34 +128,39 @@
 }
 
 .box-address-input {
-    height:50px;
-    width:415px;
-    margin-left:15px;
-    margin-top:5px;
-    font-size:20px;
-    font-weight:400;
-    background-color:#f5f5f5;
-    border-width:0;
-    border-color:#f5f5f5;
-    outline:none;
+    height: 50px;
+    width: 415px;
+    margin-left: 15px;
+    margin-top: 5px;
+    font-size: 20px;
+    font-weight: 400;
+    background-color: #ffffff;
+    border-width: 0;
+    border-color: #f5f5f5;
+    outline: none;
 }
 
 .token-selector-div {
     width: 100px;
-    position:relative; 
-    left:325px; 
-    bottom:45px;
+    position: relative;
+    left: 325px;
+    bottom: 45px;
 }
 
 .token-selector-button-container {
-    display: flex;         /*使用flexbox布局 */
-    flex-direction: column; /* 设置为列方向，元素垂直排列 */
-    gap: 5px;              /* 两个 tokenSelector 组件之间的垂直间距 */
-    margin-top: -25px;     /* 向上移动 */
+    display: flex;
+    /*使用flexbox布局 */
+    flex-direction: column;
+    /* 设置为列方向，元素垂直排列 */
+    gap: 5px;
+    /* 两个 tokenSelector 组件之间的垂直间距 */
+    margin-top: -25px;
+    /* 向上移动 */
 }
 
-.token-selector-button-container > :first-child {
-    margin-top: -10px; /* 通过负 margin 将第一个元素上移 */
+.token-selector-button-container> :first-child {
+    margin-top: -10px;
+    /* 通过负 margin 将第一个元素上移 */
 }
 
 .token-selector-button {
@@ -144,7 +168,8 @@
     padding-bottom: 5px;
     color: black;
     background-color: #ffffff;
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1); /* 添加柔和的阴影效果 */
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+    /* 添加柔和的阴影效果 */
 }
 
 .token-selector-button:hover {
@@ -167,25 +192,34 @@
 
 .token-selector-modal-row {
     display: flex;
-    align-items: center; /* 垂直居中对齐 */
-    gap: 10px; /* 两列之间的间距 */
-    transition: background-color 0.3s ease; /* 添加过渡效果，使颜色变化更平滑 */
+    align-items: center;
+    /* 垂直居中对齐 */
+    gap: 10px;
+    /* 两列之间的间距 */
+    transition: background-color 0.3s ease;
+    /* 添加过渡效果，使颜色变化更平滑 */
 }
 
 .token-selector-modal-row:hover {
-    background-color: #F5F5F5; /* 设置悬停时的背景颜色，调整透明度以使其更柔和 */
-    cursor: pointer; /* 鼠标悬浮时显示可点击的样式 */
+    background-color: #F5F5F5;
+    /* 设置悬停时的背景颜色，调整透明度以使其更柔和 */
+    cursor: pointer;
+    /* 鼠标悬浮时显示可点击的样式 */
 }
 
 .token-selector-modal-image-column {
-    flex: 0 0 auto; /* 确保图片列大小固定 */
+    flex: 0 0 auto;
+    /* 确保图片列大小固定 */
 }
 
 .token-selector-modal-info-column {
-    flex: 1; /* 让信息列占据剩余空间 */
+    flex: 1;
+    /* 让信息列占据剩余空间 */
     display: flex;
-    flex-direction: column; /* 垂直排列 span 元素 */
-    justify-content: center; /* 垂直居中信息列 */
+    flex-direction: column;
+    /* 垂直排列 span 元素 */
+    justify-content: center;
+    /* 垂直居中信息列 */
 }
 
 .token-selector-modal-token-img {
@@ -198,24 +232,24 @@
 
 .token-selector-modal-token-name-symbol {
     font-size: large;
-    font-weight:500;
+    font-weight: 500;
 }
 
 .token-selector-modal-token-metadata {
     font-size: 12.5px;
-    font-weight:normal;
+    font-weight: normal;
 }
 
 
 .submit-button-div {
-    width:230px;
+    width: 230px;
 }
 
 .submit-button {
-    height:50px;
-    width:450px;
+    height: 50px;
+    width: 450px;
     margin-bottom: 5px;
-    border:0px;
+    border: 0px;
     color: #72a1ff;
     background-color: #f4f8ff;
     box-shadow: none;
@@ -242,18 +276,23 @@
 .nft-img-box {
     height: 163px;
     width: 133px;
-    background-color: #F5F5F5;
+    background-color: #ffffff;
     border-radius: 10px;
-    display: flex;              /* 使用 Flexbox 布局 */
-    flex-direction: column;     /* 让子元素垂直排列 */
-    align-items: center;        /* 水平居中对齐子元素 */
-    justify-content: center;     /* 垂直居中对齐子元素 */
+    display: flex;
+    /* 使用 Flexbox 布局 */
+    flex-direction: column;
+    /* 让子元素垂直排列 */
+    align-items: center;
+    /* 水平居中对齐子元素 */
+    justify-content: center;
+    /* 垂直居中对齐子元素 */
 }
 
 .nft-img {
     width: 113px;
     margin-top: 10px;
-    border-radius: 10px;  /* 添加圆角效果 */
+    border-radius: 10px;
+    /* 添加圆角效果 */
 }
 
 .nft-font {

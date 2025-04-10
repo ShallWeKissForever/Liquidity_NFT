@@ -176,7 +176,10 @@ module contract::liquidity_pool {
             pending_fee_manager: @0x0,
             pending_pauser: @0x0,
             stable_fee_bps: 10, // 0.1%
-            volatile_fee_bps: 20, // 0.2%
+            //normal
+            // volatile_fee_bps: 20, // 0.2%
+            //demo only
+            volatile_fee_bps: 1000, // 10%
         });
 
     }

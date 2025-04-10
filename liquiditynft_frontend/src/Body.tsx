@@ -1,18 +1,26 @@
 import './css/Body.css';
 import { useState, useEffect, useRef } from 'react';
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-import { Col, Row, Button, Modal, List } from 'antd';
+import { Col, Row, Button, Modal, List, message } from 'antd'; // 添加 message 导入
 import { useWallet, InputTransactionData } from '@aptos-labs/wallet-adapter-react';
 import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
 import { Pool, Token, defaultToken } from './types/type.ts';
+import { useLanguage } from './context/LanguageContext';
 
 export default function SwapFeature() {
+
+  //中英文切换
+  const { t } = useLanguage();
+
   //合约发布的账户地址
   const moduleAddress = "0x54a135166d46d1b559dbe196e65b8a7f6833a3713b01cd4dc96d2f170be4460b";
+
   //设置 Aptos 与 testnet 网络交互
   const aptosConfig = new AptosConfig({ network: Network.TESTNET });
+
   //初始化一个 Aptos 实例
   const aptos = new Aptos(aptosConfig);
+
   //account 对象是 null 如果没有连接帐户;连接帐户时， account 对象将保存帐户信息，包括帐户地址。
   const { account, signAndSubmitTransaction } = useWallet();
 
@@ -46,7 +54,7 @@ export default function SwapFeature() {
   // 在组件挂载时执行 getTokenList
   useEffect(() => {
     getTokenList();
-  }, []); // 空依赖数组表示只在组件挂载时执行一次
+  }, []);
 
   // 在selectedToken2有值并连接了钱包时更新
   useEffect(() => {
@@ -278,7 +286,7 @@ export default function SwapFeature() {
     setSelectedToken,
     tokenList,
   }: {
-    selectedToken: { name: string; symbol: string; uri: string };
+    selectedToken: { name: string; symbol: string; uri: string; metadata: string };
     setSelectedToken: (token: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string }) => void;
     tokenList: { name: string; symbol: string; uri: string; metadata: string; pairTokenMetadata: string }[];
   }) => {
@@ -303,26 +311,24 @@ export default function SwapFeature() {
     return (
       <div className='token-selector-div'>
         <Button className='token-selector-button' type="primary" onClick={showModal} disabled={fetchingTokenList}>
-          {/* 更新tokenList时禁用按钮 */}
           {fetchingTokenList === false ? (
             <>
-              {selectedToken.name !== 'Select token' ?
+              {selectedToken.metadata !== '' ?
                 <img className='token-selector-button-token-img' src={selectedToken.uri} alt={selectedToken.symbol} /> :
                 ''
               }
-              {selectedToken.name !== 'Select token' ?
+              {selectedToken.metadata !== '' ?
                 <span className='token-selector-button-token-text'>{selectedToken.symbol}</span> :
-                <span>Select token</span>
+                <span>{t('select_token')}</span>
               }
             </>
           ) : (
-            'Loading...'
+            t('loading')
           )}
-
         </Button>
 
         {/* 弹窗显示币对选择 */}
-        <Modal title="Select token" open={isModalVisible} onCancel={handleCancel} footer={null}>
+        <Modal title={t('select_token')} open={isModalVisible} onCancel={handleCancel} footer={null}>
           <List
             dataSource={tokenList}
             renderItem={token => (
@@ -446,7 +452,29 @@ export default function SwapFeature() {
       try {
         const responseSwap = await signAndSubmitTransaction(transactionSwap);
         await aptos.waitForTransaction({ transactionHash: responseSwap.hash });
+        message.success({
+          content: (
+            <div>
+              {t('transaction_success')}
+              <br />
+              <a href={`https://explorer.aptoslabs.com/txn/${responseSwap.hash}?network=testnet`} target="_blank" rel="noopener noreferrer">
+                {t('view_on_explorer')}
+              </a>
+            </div>
+          ),
+          style: {
+            marginTop: '5vh',
+          },
+          duration: 4, // 增加显示时间，让用户有足够时间点击链接
+        });
       } catch (error) {
+        message.error({
+          content: t('transaction_failed'),
+          style: {
+            marginTop: '5vh',
+          },
+          duration: 2,
+        });
         console.log(error);
       }
     };
@@ -454,7 +482,7 @@ export default function SwapFeature() {
     return (
       <>
         <div className="box">
-          <span className="box-span">Sell</span>
+          <span className="box-span">{t('sell')}</span>
           <br />
           <input
             className="box-input"
@@ -470,7 +498,7 @@ export default function SwapFeature() {
         </div>
 
         <div className="box">
-          <span className="box-span">Buy</span>
+          <span className="box-span">{t('buy')}</span>
           <br />
           <input
             className="box-input display-buy-token-amount"
@@ -495,7 +523,7 @@ export default function SwapFeature() {
           <Row justify={'center'}>
             <div className='submit-button-div'>
               <Button className="submit-button" onClick={handleSwap}>
-                Swap
+                {t('swap')}
               </Button>
             </div>
           </Row>
@@ -526,8 +554,28 @@ export default function SwapFeature() {
 
         const responseCreatePool = await signAndSubmitTransaction(transactionCreatePool);
         await aptos.waitForTransaction({ transactionHash: responseCreatePool.hash });
-
+        message.success({
+          content: (
+            <div>
+              {t('transaction_success')}
+              <br />
+              <a href={`https://explorer.aptoslabs.com/txn/${responseCreatePool.hash}?network=testnet`} target="_blank" rel="noopener noreferrer">
+                {t('view_on_explorer')}
+              </a>
+            </div>
+          ), style: {
+            marginTop: '5vh',
+          },
+          duration: 2, // 显示3秒
+        });
       } catch (error) {
+        message.error({
+          content: t('transaction_failed'),
+          style: {
+            marginTop: '5vh',
+          },
+          duration: 2,
+        });
         console.log("error", error)
       };
 
@@ -546,7 +594,7 @@ export default function SwapFeature() {
         <div className='box' >
 
           <span className='box-span'>
-            Token1
+            {t('token1')}
           </span>
 
           <br />
@@ -562,7 +610,7 @@ export default function SwapFeature() {
         <div className='box' >
 
           <span className='box-span'>
-            Token2
+            {t('token2')}
           </span>
 
           <br />
@@ -586,7 +634,7 @@ export default function SwapFeature() {
             <div className='submit-button-div'>
 
               <Button className='submit-button' onClick={handleCreatePool}>
-                Create pool
+                {t('create_pool')}
               </Button>
             </div>
           </Row>
@@ -636,7 +684,29 @@ export default function SwapFeature() {
         // 更新LP NFT和LP Token的余额
         getLpNftUri();
         getLpTokenBalance();
+        message.success({
+          content: (
+            <div>
+              {t('transaction_success')}
+              <br />
+              <a href={`https://explorer.aptoslabs.com/txn/${responseAddLiquidity.hash}?network=testnet`} target="_blank" rel="noopener noreferrer">
+                {t('view_on_explorer')}
+              </a>
+            </div>
+          ),
+          style: {
+            marginTop: '5vh',
+          },
+          duration: 2, // 显示3秒
+        });
       } catch (error) {
+        message.error({
+          content: t('transaction_failed'),
+          style: {
+            marginTop: '5vh',
+          },
+          duration: 2,
+        });
         console.log("error", error);
       }
 
@@ -648,7 +718,7 @@ export default function SwapFeature() {
     return (
       <>
         <div className='box'>
-          <span className='box-span'>Token1</span>
+          <span className='box-span'>{t('token1')}</span>
           <br />
           <input
             className='box-input'
@@ -665,7 +735,7 @@ export default function SwapFeature() {
         </div>
 
         <div className='box'>
-          <span className='box-span'>Token2</span>
+          <span className='box-span'>{t('token2')}</span>
           <br />
           <input
             className='box-input'
@@ -692,7 +762,7 @@ export default function SwapFeature() {
             <div className='submit-button-div'>
 
               <Button className='submit-button' onClick={handleAddLiquidity}>
-                Add liquidity
+                {t('add_liquidity')}
               </Button>
             </div>
           </Row>
@@ -739,7 +809,28 @@ export default function SwapFeature() {
         // 更新LP NFT和LP Token的余额
         getLpNftUri();
         getLpTokenBalance();
+        message.success({
+          content: (
+            <div>
+              {t('transaction_success')}
+              <br />
+              <a href={`https://explorer.aptoslabs.com/txn/${responseRemoveLiquidity.hash}?network=testnet`} target="_blank" rel="noopener noreferrer">
+                {t('view_on_explorer')}
+              </a>
+            </div>
+          ), style: {
+            marginTop: '5vh',
+          },
+          duration: 2, // 显示3秒
+        });
       } catch (error) {
+        message.error({
+          content: t('transaction_failed'),
+          style: {
+            marginTop: '5vh',
+          },
+          duration: 2,
+        });
         console.log("error", error);
       }
 
@@ -750,7 +841,7 @@ export default function SwapFeature() {
     return (
       <>
         <div className='box'>
-          <span className='box-span'>LP Token</span>
+          <span className='box-span'>{t('lp_token')}</span>
           <br />
           <input
             className='box-input'
@@ -760,7 +851,7 @@ export default function SwapFeature() {
             placeholder='0'
           />
           <span className='box-span-lp-token-balance'>
-            LP Token Balance : {lpTokenBalance ? (parseFloat(lpTokenBalance) / 1_000_000).toString() : "0"} {/* 将lpTokenBalance除以1000000 */}
+            {t('lp_token_balance')} : {lpTokenBalance ? (parseFloat(lpTokenBalance) / 1_000_000).toString() : "0"} {/* 将lpTokenBalance除以1000000 */}
           </span>
 
           <div className="token-selector-button-container">
@@ -787,7 +878,7 @@ export default function SwapFeature() {
           <Row justify={'center'}>
             <div className='submit-button-div'>
               <Button className='submit-button' onClick={handleRemoveLiquidity}>
-                Remove liquidity
+                {t('remove_liquidity')}
               </Button>
             </div>
           </Row>
@@ -828,8 +919,8 @@ export default function SwapFeature() {
           )}
           {lpNftUri === '' && (
             <>
-              {/* <img src="https://s21.ax1x.com/2024/10/20/pAaB3cT.png" alt="NFT uri miss" className='nft-img' /> */}
-              <p className='nft-font'>Please select token</p>
+              <img src={'https://github.com/ShallWeKissForever/stackedit-app-data/blob/master/imgs/LiquidityNFT/NoNFT.png?raw=true'} alt="NoNFT" className='nft-img' />
+              <p className='nft-font'>{t('please_select_token')}</p>
             </>
           )}
         </div>
@@ -845,7 +936,7 @@ export default function SwapFeature() {
                 }`}
               onClick={() => setActiveFeature('swap')}
             >
-              Swap
+              {t('swap')}
             </Button>
 
             <Button
@@ -853,7 +944,7 @@ export default function SwapFeature() {
                 }`}
               onClick={() => setActiveFeature('createPool')}
             >
-              Create
+              {t('create')}
             </Button>
 
             <Button
@@ -861,7 +952,7 @@ export default function SwapFeature() {
                 }`}
               onClick={() => setActiveFeature('addLiquidity')}
             >
-              Add
+              {t('add')}
             </Button>
 
             <Button
@@ -869,7 +960,7 @@ export default function SwapFeature() {
                 }`}
               onClick={() => setActiveFeature('removeLiquidity')}
             >
-              Remove
+              {t('remove')}
             </Button>
           </div>
 

@@ -1,35 +1,54 @@
 import "./css/Header.css";
 import { WalletSelector } from "@aptos-labs/wallet-adapter-ant-design";
-import { Col, Layout, Row, Button } from 'antd';
+import { Col, Layout, Row, Button, Switch } from 'antd';
 import "@aptos-labs/wallet-adapter-ant-design/dist/index.css";
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { handleMintTestFA } from './utils/mintTestFA';
+import { useLanguage } from './context/LanguageContext';
 
 function Header() {
     const { account, signAndSubmitTransaction } = useWallet();
+    const { language, setLanguage } = useLanguage();
+
+    const toggleLanguage = () => {
+        setLanguage(language === 'en' ? 'zh' : 'en');
+    };
+
+    const { t } = useLanguage();
 
     return (
         <>
-            <Layout style={{ backgroundColor: '#ffffff' }}>
+            <Layout className="layout">
                 <Row align={"middle"}>
-                    <Col span={1} offset={1}>
-                        <h1 style={{ color: "#72a1ff" }}>DNFT</h1>
+                    <Col span={5} offset={1}>
+                        <h1 style={{ color: "#72a1ff" }}>{t('logo')}</h1>
                     </Col>
 
-                    <Col span={19} style={{ textAlign: "right", paddingRight: "20px" }}>
+                    <Col span={14} style={{ textAlign: "right", paddingRight: "20px" }}>
                         {account && (
                             <Button
                                 className="mint-button"
                                 onClick={() => handleMintTestFA(signAndSubmitTransaction)}
                             >
-                                Mint test tokens
+                                {t('mint_test_token')}
                             </Button>
                         )}
                     </Col>
 
-                    <Col span={2} className="header-wallet">
+                    <Col span={2} className="header-wallet" style={{ textAlign: "right", paddingRight: "10px" }}>
                         <WalletSelector />
                     </Col>
+
+                    <Col span={1} style={{ textAlign: "right" }}>
+                        <Switch
+                            checkedChildren="中"
+                            unCheckedChildren="En"
+                            checked={language === 'zh'}
+                            onChange={toggleLanguage}
+                            className="language-switch"
+                        />
+                    </Col>
+
                 </Row>
             </Layout>
         </>

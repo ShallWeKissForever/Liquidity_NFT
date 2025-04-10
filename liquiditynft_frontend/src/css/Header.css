@@ -1,3 +1,17 @@
+.layout {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: linear-gradient(to bottom, #e2e0ff, #f4f2ff);
+}
+
+h1 {
+    color:#72a6ff;
+}
+
 .mint-button {
     width: 130px;
     height: 40px;
@@ -9,4 +23,23 @@
 .mint-button:hover {
     color: #3c83fe !important;
     background-color: #ebf2fe !important;
+}
+
+/* 添加语言切换按钮样式 */
+.language-switch {
+    
+}
+
+.language-switch.ant-switch-checked {
+    background-color: #72a1ff;
+}
+
+/* 未选中状态的按钮颜色 */
+.language-switch.ant-switch:not(.ant-switch-checked) {
+    background-color: #a8c6ff;
+}
+
+/* 鼠标悬停时的颜色 */
+.language-switch.ant-switch:hover {
+    background-color: #5a91ff;
 }
