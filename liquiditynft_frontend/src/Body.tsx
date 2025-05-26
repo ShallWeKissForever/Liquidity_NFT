@@ -1,19 +1,18 @@
 import './css/Body.css';
 import { useState, useEffect, useRef } from 'react';
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-import { Col, Row, Button, Modal, List, message } from 'antd'; // 添加 message 导入
+import { Col, Row, Button, Modal, List, message } from 'antd';
 import { useWallet, InputTransactionData } from '@aptos-labs/wallet-adapter-react';
 import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
 import { Pool, Token, defaultToken } from './types/type.ts';
 import { useLanguage } from './context/LanguageContext';
 
 export default function SwapFeature() {
-
   //中英文切换
   const { t } = useLanguage();
 
   //合约发布的账户地址
-  const moduleAddress = "0x54a135166d46d1b559dbe196e65b8a7f6833a3713b01cd4dc96d2f170be4460b";
+  const moduleAddress = "0x8e3f47d8f639212ee51a4131ecf1ee28a74e11223904241e682fd94806b4a1cb";
 
   //设置 Aptos 与 testnet 网络交互
   const aptosConfig = new AptosConfig({ network: Network.TESTNET });
@@ -39,15 +38,6 @@ export default function SwapFeature() {
   //在tokenSelector2中被选中的token
   const [selectedToken2, setSelectedToken2] = useState<Token>(defaultToken);
 
-  //保存当前选择币对的NFT的Uri
-  const [lpNftUri, setLpNftUri] = useState('');
-
-  //保存当前选择币对的LP Token的余额
-  const [lpTokenBalance, setLpTokenBalance] = useState('');
-
-  // 定义状态来保存当前选择的功能
-  const [activeFeature, setActiveFeature] = useState('swap');
-
   //保存正在拉取token列表的状态
   const [fetchingTokenList, setFetchingTokenList] = useState(false)
 
@@ -56,27 +46,8 @@ export default function SwapFeature() {
     getTokenList();
   }, []);
 
-  // 在selectedToken2有值并连接了钱包时更新
-  useEffect(() => {
-    if (selectedToken2.uri !== '' && account !== null) {
-      getLpNftUri();
-    } else {
-      setLpNftUri('');
-    }
-  }, [selectedToken2, account?.address]); //当selectedToken2变化和连接&断开钱包时更新
-
-  // 在selectedToken2有值并连接了钱包时更新
-  useEffect(() => {
-    if (selectedToken2.uri !== '' && account !== null) {
-      getLpTokenBalance();
-    } else {
-      setLpTokenBalance('');
-    }
-  }, [selectedToken2, account?.address]); //当selectedToken2变化和连接&断开钱包时更新
-
   // 使用 useEffect 在 pools 更新时更新 tokenList
   useEffect(() => {
-
     // 使用 Set 来跟踪已出现的 metadata，避免重复
     const seenMetadata = new Set();
 
@@ -124,6 +95,8 @@ export default function SwapFeature() {
   const filteredTokenListForToken2 = tokenList.filter(
     (token) => token.pairTokenMetadata === selectedToken1.metadata
   );
+
+
 
   // 从链上获取币对
   const getTokenList = async () => {
@@ -223,61 +196,30 @@ export default function SwapFeature() {
 
       // 在所有池处理完后一次性更新状态
       setPools(tempPools);
+      // 日志输出
+      console.log('pools:', tempPools);
+      const tokenList = tempPools.flatMap((pool) => [
+        {
+          name: pool.token_name_1,
+          symbol: pool.token_symbol_1,
+          uri: pool.token_uri_1,
+          metadata: pool.token_metadata_1,
+          pairTokenMetadata: pool.token_metadata_2
+        },
+        {
+          name: pool.token_name_2,
+          symbol: pool.token_symbol_2,
+          uri: pool.token_uri_2,
+          metadata: pool.token_metadata_2,
+          pairTokenMetadata: pool.token_metadata_1
+        },
+      ]);
+      console.log('tokenList:', tokenList);
 
     } catch (error) {
       console.log(error);
     }
     setFetchingTokenList(false);
-  };
-
-  //获取NFT Uri
-  const getLpNftUri = async () => {
-    try {
-      const returnGetLpNftUri = await aptos.view({
-        payload: {
-          function: `${moduleAddress}::liquidity_pool::get_nft_uri`,
-          typeArguments: [],
-          functionArguments: [account?.address, selectedToken1.metadata, selectedToken2.metadata, false],
-        },
-      });
-      setLpNftUri(`${returnGetLpNftUri[0]}`);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  //获取Lp Token的余额
-  const getLpTokenBalance = async () => {
-    try {
-      const returnGetLpTokenBalance = await aptos.view({
-        payload: {
-          function: `${moduleAddress}::liquidity_pool::lp_token_balance`,
-          typeArguments: [],
-          functionArguments: [account?.address, selectedToken1.metadata, selectedToken2.metadata, false],
-        },
-      });
-      setLpTokenBalance(`${returnGetLpTokenBalance[0]}`);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  // 在提交时补零
-  const formatTokenAmount = (value: string) => {
-    if (value === "" || value === "0") {
-      return "0";
-    }
-    if (value === "1" || value === "1.") {
-      return "1000000"; // 如果输入1或1.，补零为1000000
-    }
-    // 否则将小数点右移6位
-    const parts = value.split(".");
-    if (parts.length === 1) {
-      return `${parts[0]}000000`; // 无小数部分时补6个0
-    }
-    const [integerPart, decimalPart] = parts;
-    const paddedDecimal = decimalPart.padEnd(6, "0"); // 补足6位小数
-    return `${integerPart}${paddedDecimal}`; // 返回移位后的值
   };
 
   //选择代币的按钮
@@ -331,6 +273,7 @@ export default function SwapFeature() {
         <Modal title={t('select_token')} open={isModalVisible} onCancel={handleCancel} footer={null}>
           <List
             dataSource={tokenList}
+            locale={{ emptyText: t('no_tokens_available') || '暂无可选代币' }}
             renderItem={token => (
               <List.Item onClick={() => handleSelectToken(token)}>
 
@@ -352,7 +295,7 @@ export default function SwapFeature() {
     );
   };
 
-  // “兑换”功能组件
+  // "兑换"功能组件
   const Swap = () => {
     const [sellTokenAmount, setSellTokenAmount] = useState("");
     const [displaySellTokenAmount, setDisplaySellTokenAmount] = useState(""); // 用于保存用户看到的值
@@ -463,16 +406,18 @@ export default function SwapFeature() {
             </div>
           ),
           style: {
-            marginTop: '5vh',
-          },
-          duration: 4, // 增加显示时间，让用户有足够时间点击链接
+            marginTop: '90vh',
+            marginLeft: '90%',
+        },
+          duration: 4, // 显示时间，让用户有足够时间点击链接
         });
       } catch (error) {
         message.error({
           content: t('transaction_failed'),
           style: {
-            marginTop: '5vh',
-          },
+            marginTop: '90vh',
+            marginLeft: '90%',
+        },
           duration: 2,
         });
         console.log(error);
@@ -483,34 +428,36 @@ export default function SwapFeature() {
       <>
         <div className="box">
           <span className="box-span">{t('sell')}</span>
-          <br />
-          <input
-            className="box-input"
-            value={displaySellTokenAmount}  // 显示用户输入的值
-            onChange={(e) => handleSellTokenChange(e.target.value)}
-            placeholder="0"
-          />
-          <TokenSelector
-            selectedToken={selectedToken1}
-            setSelectedToken={setSelectedToken1}
-            tokenList={filteredTokenListForToken1}
-          />
+          <div className="box-row">
+            <input
+              className="box-input"
+              value={displaySellTokenAmount}  // 显示用户输入的值
+              onChange={(e) => handleSellTokenChange(e.target.value)}
+              placeholder="0"
+            />
+            <TokenSelector
+              selectedToken={selectedToken1}
+              setSelectedToken={setSelectedToken1}
+              tokenList={filteredTokenListForToken1}
+            />
+          </div>
         </div>
 
         <div className="box">
           <span className="box-span">{t('buy')}</span>
-          <br />
-          <input
-            className="box-input display-buy-token-amount"
-            value={buyTokenAmount}
-            placeholder="0"
-            readOnly
-          />
-          <TokenSelector
-            selectedToken={selectedToken2}
-            setSelectedToken={setSelectedToken2}
-            tokenList={filteredTokenListForToken2}
-          />
+          <div className="box-row">
+            <input
+              className="box-input display-buy-token-amount"
+              value={buyTokenAmount}
+              placeholder="0"
+              readOnly
+            />
+            <TokenSelector
+              selectedToken={selectedToken2}
+              setSelectedToken={setSelectedToken2}
+              tokenList={filteredTokenListForToken2}
+            />
+          </div>
         </div>
 
         {account === null ? (
@@ -532,446 +479,20 @@ export default function SwapFeature() {
     );
   };
 
-  // “创建”功能组件
-  const CreatePool = () => {
-
-    const token1Ref = useRef<HTMLInputElement>(null);  // 使用 useRef 来控制输入框
-    const token2Ref = useRef<HTMLInputElement>(null);
-
-    const handleCreatePool = async () => {
-
-      const token1 = token1Ref.current ? token1Ref.current.value : "";  // 获取输入框的值
-      const token2 = token2Ref.current ? token2Ref.current.value : "";
-
-      const transactionCreatePool: InputTransactionData = {
-        data: {
-          function: `${moduleAddress}::router::create_pool`,
-          functionArguments: [token1, token2, false]
-        }
-      };
-
-      try {
-
-        const responseCreatePool = await signAndSubmitTransaction(transactionCreatePool);
-        await aptos.waitForTransaction({ transactionHash: responseCreatePool.hash });
-        message.success({
-          content: (
-            <div>
-              {t('transaction_success')}
-              <br />
-              <a href={`https://explorer.aptoslabs.com/txn/${responseCreatePool.hash}?network=testnet`} target="_blank" rel="noopener noreferrer">
-                {t('view_on_explorer')}
-              </a>
-            </div>
-          ), style: {
-            marginTop: '5vh',
-          },
-          duration: 2, // 显示3秒
-        });
-      } catch (error) {
-        message.error({
-          content: t('transaction_failed'),
-          style: {
-            marginTop: '5vh',
-          },
-          duration: 2,
-        });
-        console.log("error", error)
-      };
-
-      // 重置输入框值
-      if (token1Ref.current) token1Ref.current.value = "";
-      if (token2Ref.current) token2Ref.current.value = "";
-
-      //拉取token列表
-      getTokenList();
-
-    };
-
-    return (
-      <>
-
-        <div className='box' >
-
-          <span className='box-span'>
-            {t('token1')}
-          </span>
-
-          <br />
-
-          <input
-            className='box-address-input'
-            ref={token1Ref} // 使用 useRef 绑定输入框
-            placeholder='Object<Metadata>'
-          />
-
-        </div>
-
-        <div className='box' >
-
-          <span className='box-span'>
-            {t('token2')}
-          </span>
-
-          <br />
-
-          <input
-            className='box-address-input'
-            ref={token2Ref} // 使用 useRef 绑定输入框
-            placeholder='Object<Metadata>'
-          />
-
-        </div>
-
-        {(account === null) ? (
-          <Row justify={'center'}>
-            <div className='wallet-button-div'>
-              <WalletSelector />
-            </div>
-          </Row>
-        ) : (
-          <Row justify={'center'}>
-            <div className='submit-button-div'>
-
-              <Button className='submit-button' onClick={handleCreatePool}>
-                {t('create_pool')}
-              </Button>
-            </div>
-          </Row>
-        )}
-      </>
-    );
-  };
-
-  // “添加”功能组件
-  const AddLiquidity = () => {
-    // 用户在输入框中看到的值
-    const [displayToken1Amount, setDisplayToken1Amount] = useState("");
-    const [displayToken2Amount, setDisplayToken2Amount] = useState("");
-
-    const token1AmountRef = useRef<HTMLInputElement>(null);
-    const token2AmountRef = useRef<HTMLInputElement>(null);
-
-    // 处理用户输入，只限制6位小数
-    const handleTokenInput = (e: React.ChangeEvent<HTMLInputElement>, setDisplayAmount: (value: string) => void) => {
-      const value = e.target.value;
-
-      // 限制用户输入最多6位小数
-      if (/^\d*\.?\d{0,6}$/.test(value)) {
-        setDisplayAmount(value);
-      }
-    };
-
-    const handleAddLiquidity = async () => {
-      const token1Amount = token1AmountRef.current ? token1AmountRef.current.value : "";
-      const token2Amount = token2AmountRef.current ? token2AmountRef.current.value : "";
-
-      // 提交前格式化输入的金额
-      const formattedToken1Amount = formatTokenAmount(token1Amount);
-      const formattedToken2Amount = formatTokenAmount(token2Amount);
-
-      const transactionAddLiquidity: InputTransactionData = {
-        data: {
-          function: `${moduleAddress}::router::add_liquidity_entry`,
-          functionArguments: [selectedToken1.metadata, selectedToken2.metadata, false, formattedToken1Amount, formattedToken2Amount, 1, 1]
-        }
-      };
-
-      try {
-        const responseAddLiquidity = await signAndSubmitTransaction(transactionAddLiquidity);
-        await aptos.waitForTransaction({ transactionHash: responseAddLiquidity.hash });
-
-        // 更新LP NFT和LP Token的余额
-        getLpNftUri();
-        getLpTokenBalance();
-        message.success({
-          content: (
-            <div>
-              {t('transaction_success')}
-              <br />
-              <a href={`https://explorer.aptoslabs.com/txn/${responseAddLiquidity.hash}?network=testnet`} target="_blank" rel="noopener noreferrer">
-                {t('view_on_explorer')}
-              </a>
-            </div>
-          ),
-          style: {
-            marginTop: '5vh',
-          },
-          duration: 2, // 显示3秒
-        });
-      } catch (error) {
-        message.error({
-          content: t('transaction_failed'),
-          style: {
-            marginTop: '5vh',
-          },
-          duration: 2,
-        });
-        console.log("error", error);
-      }
-
-      // 重置输入框
-      setDisplayToken1Amount("");
-      setDisplayToken2Amount("");
-    };
-
-    return (
-      <>
-        <div className='box'>
-          <span className='box-span'>{t('token1')}</span>
-          <br />
-          <input
-            className='box-input'
-            ref={token1AmountRef}
-            value={displayToken1Amount}
-            onChange={(e) => handleTokenInput(e, setDisplayToken1Amount)} // 处理输入
-            placeholder='0'
-          />
-          <TokenSelector
-            selectedToken={selectedToken1}
-            setSelectedToken={setSelectedToken1}
-            tokenList={filteredTokenListForToken1}
-          />
-        </div>
-
-        <div className='box'>
-          <span className='box-span'>{t('token2')}</span>
-          <br />
-          <input
-            className='box-input'
-            ref={token2AmountRef}
-            value={displayToken2Amount}
-            onChange={(e) => handleTokenInput(e, setDisplayToken2Amount)} // 处理输入
-            placeholder='0'
-          />
-          <TokenSelector
-            selectedToken={selectedToken2}
-            setSelectedToken={setSelectedToken2}
-            tokenList={filteredTokenListForToken2}
-          />
-        </div>
-
-        {account === null ? (
-          <Row justify={'center'}>
-            <div className='wallet-button-div'>
-              <WalletSelector />
-            </div>
-          </Row>
-        ) : (
-          <Row justify={'center'}>
-            <div className='submit-button-div'>
-
-              <Button className='submit-button' onClick={handleAddLiquidity}>
-                {t('add_liquidity')}
-              </Button>
-            </div>
-          </Row>
-        )}
-      </>
-    );
-  };
-
-
-  // “移除”功能组件
-  const RemoveLiquidity = () => {
-    // 用户在输入框中看到的值
-    const [displayLpTokenAmount, setDisplayLpTokenAmount] = useState("");
-
-    const lpTokentokenAmountRef = useRef<HTMLInputElement>(null);
-
-    // 处理用户输入，只限制6位小数
-    const handleTokenInput = (e: React.ChangeEvent<HTMLInputElement>, setDisplayAmount: (value: string) => void) => {
-      const value = e.target.value;
-
-      // 限制用户输入最多6位小数
-      if (/^\d*\.?\d{0,6}$/.test(value)) {
-        setDisplayAmount(value);
-      }
-    };
-
-    const handleRemoveLiquidity = async () => {
-      const lpTokentokenAmount = lpTokentokenAmountRef.current ? lpTokentokenAmountRef.current.value : "";
-
-      // 提交前格式化输入的金额
-      const formattedLpTokenAmount = formatTokenAmount(lpTokentokenAmount);
-
-      const transactionRemoveLiquidity: InputTransactionData = {
-        data: {
-          function: `${moduleAddress}::router::remove_liquidity_entry`,
-          functionArguments: [selectedToken1.metadata, selectedToken2.metadata, false, formattedLpTokenAmount, 1, 1, account?.address]
-        }
-      };
-
-      try {
-        const responseRemoveLiquidity = await signAndSubmitTransaction(transactionRemoveLiquidity);
-        await aptos.waitForTransaction({ transactionHash: responseRemoveLiquidity.hash });
-
-        // 更新LP NFT和LP Token的余额
-        getLpNftUri();
-        getLpTokenBalance();
-        message.success({
-          content: (
-            <div>
-              {t('transaction_success')}
-              <br />
-              <a href={`https://explorer.aptoslabs.com/txn/${responseRemoveLiquidity.hash}?network=testnet`} target="_blank" rel="noopener noreferrer">
-                {t('view_on_explorer')}
-              </a>
-            </div>
-          ), style: {
-            marginTop: '5vh',
-          },
-          duration: 2, // 显示3秒
-        });
-      } catch (error) {
-        message.error({
-          content: t('transaction_failed'),
-          style: {
-            marginTop: '5vh',
-          },
-          duration: 2,
-        });
-        console.log("error", error);
-      }
-
-      // 重置输入框
-      setDisplayLpTokenAmount("");
-    };
-
-    return (
-      <>
-        <div className='box'>
-          <span className='box-span'>{t('lp_token')}</span>
-          <br />
-          <input
-            className='box-input'
-            ref={lpTokentokenAmountRef}
-            value={displayLpTokenAmount}
-            onChange={(e) => handleTokenInput(e, setDisplayLpTokenAmount)} // 处理输入
-            placeholder='0'
-          />
-          <span className='box-span-lp-token-balance'>
-            {t('lp_token_balance')} : {lpTokenBalance ? (parseFloat(lpTokenBalance) / 1_000_000).toString() : "0"} {/* 将lpTokenBalance除以1000000 */}
-          </span>
-
-          <div className="token-selector-button-container">
-            <TokenSelector
-              selectedToken={selectedToken1}
-              setSelectedToken={setSelectedToken1}
-              tokenList={filteredTokenListForToken1}
-            />
-            <TokenSelector
-              selectedToken={selectedToken2}
-              setSelectedToken={setSelectedToken2}
-              tokenList={filteredTokenListForToken2}
-            />
-          </div>
-        </div>
-
-        {account === null ? (
-          <Row justify={'center'}>
-            <div className='wallet-button-div'>
-              <WalletSelector />
-            </div>
-          </Row>
-        ) : (
-          <Row justify={'center'}>
-            <div className='submit-button-div'>
-              <Button className='submit-button' onClick={handleRemoveLiquidity}>
-                {t('remove_liquidity')}
-              </Button>
-            </div>
-          </Row>
-        )}
-      </>
-    );
-  };
-
-  // 处理功能切换的函数
-  const renderFeature = () => {
-    switch (activeFeature) {
-      case 'swap':
-        return <Swap />;
-      case 'createPool':
-        return <CreatePool />;
-      case 'addLiquidity':
-        return <AddLiquidity />;
-      case 'removeLiquidity':
-        return <RemoveLiquidity />;
-    }
-  };
-
   return (
-
-    <Row align={'top'} justify={'start'}>
-
-      {/* 新的左侧列 */}
-      <Col span={4} offset={4} style={{ marginTop: '135px' }}>
-
-        <div className='nft-img-box'>
-
-          {/* 仅当 lpNftUri 不为空字符串时才渲染图片 */}
-          {lpNftUri !== '' && (
-            <>
-              <img src={lpNftUri} alt="NFT" className='nft-img' />
-              <p className='nft-font'>{`LP-NFT-${selectedToken1.symbol}` + `-${selectedToken2.symbol}`}</p>
-            </>
-          )}
-          {lpNftUri === '' && (
-            <>
-              <img src={'https://github.com/ShallWeKissForever/Liquidity_NFT/blob/main/liquiditynft_nft_image/NoNFT.png?raw=true'} alt="NoNFT" className='nft-img' />
-              <p className='nft-font'>{t('please_select_token')}</p>
-            </>
-          )}
-        </div>
-
-      </Col>
-      {/* 中心内容 */}
-      <Col span={7} offset={1} style={{ marginTop: '50px' }}>
-        <div>
-          {/* 按钮组 */}
-          <div className='feature-button-div'>
-            <Button
-              className={`feature-button ${activeFeature === 'swap' ? 'feature-button-active' : 'feature-button-inactive'
-                }`}
-              onClick={() => setActiveFeature('swap')}
-            >
+    <div className="page-container">
+      <Row justify="center">
+        <Col span={20}>
+          <div className="page-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h2 style={{ color: '#72a1ff', textAlign: 'center', marginBottom: '30px' }}>
               {t('swap')}
-            </Button>
-
-            <Button
-              className={`feature-button ${activeFeature === 'createPool' ? 'feature-button-active' : 'feature-button-inactive'
-                }`}
-              onClick={() => setActiveFeature('createPool')}
-            >
-              {t('create')}
-            </Button>
-
-            <Button
-              className={`feature-button ${activeFeature === 'addLiquidity' ? 'feature-button-active' : 'feature-button-inactive'
-                }`}
-              onClick={() => setActiveFeature('addLiquidity')}
-            >
-              {t('add')}
-            </Button>
-
-            <Button
-              className={`feature-button ${activeFeature === 'removeLiquidity' ? 'feature-button-active' : 'feature-button-inactive'
-                }`}
-              onClick={() => setActiveFeature('removeLiquidity')}
-            >
-              {t('remove')}
-            </Button>
+            </h2>
+            <div style={{ width: '100%', maxWidth: 420 }}>
+              <Swap />
+            </div>
           </div>
-
-          {/* 动态内容区域 */}
-          <div className='submit-button-div'>
-            {renderFeature()}
-          </div>
-
-        </div>
-      </Col>
-    </Row>
-
+        </Col>
+      </Row>
+    </div>
   );
 }

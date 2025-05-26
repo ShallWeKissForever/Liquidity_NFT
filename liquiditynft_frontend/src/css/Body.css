@@ -21,7 +21,7 @@ body {
 }
 
 .wallet-button-div {
-    margin-left: 220px;
+    margin-left: 75px;
     /* 为什么要110的2倍？ */
     margin-bottom: 5px;
 }
@@ -91,8 +91,8 @@ body {
 .box {
     background-color: #ffffff;
     margin-bottom: 5px;
-    height: 120px;
-    width: 450px;
+    height: 150px;
+    width: 400px;
     border-radius: 10px;
 }
 
@@ -105,7 +105,7 @@ body {
 .box-input {
     height: 50px;
     width: 300px;
-    margin-left: 15px;
+    margin-left: 8px;
     margin-top: 5px;
     font-size: 40px;
     font-weight: normal;
@@ -130,7 +130,7 @@ body {
 .box-address-input {
     height: 50px;
     width: 415px;
-    margin-left: 15px;
+    margin-left: 8px;
     margin-top: 5px;
     font-size: 20px;
     font-weight: 400;
@@ -143,8 +143,8 @@ body {
 .token-selector-div {
     width: 100px;
     position: relative;
-    left: 325px;
-    bottom: 45px;
+    right: 20px;
+    bottom: 15px;
 }
 
 .token-selector-button-container {

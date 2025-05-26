@@ -261,6 +261,18 @@ module contract::liquidity_pool {
     }
 
     #[view]
+    public fun get_pool_info(token1: Object<Metadata>, token2: Object<Metadata>, is_stable: bool): (u64, u64, u64, u64, bool) acquires ResourceAccountCap, LiquidityPool {
+        if (!is_sorted(token1, token2)) {
+            return get_pool_info(token2, token1, is_stable)
+        };
+        let pool = liquidity_pool(token1, token2, is_stable);
+        let pool_data = liquidity_pool_data(&pool);
+        let reserve1 = fungible_asset::balance(pool_data.token_store_1);
+        let reserve2 = fungible_asset::balance(pool_data.token_store_2);
+        (reserve1, reserve2, pool_data.swap_fee_bps, pool_data.nft_total_supply, is_stable)
+    }
+
+    #[view]
     public fun supported_inner_assets(pool: Object<LiquidityPool>): vector<Object<Metadata>> acquires LiquidityPool {
         let pool_data = liquidity_pool_data(&pool);
         vector[
@@ -443,7 +455,7 @@ module contract::liquidity_pool {
         fungible_asset_1: FungibleAsset,
         fungible_asset_2: FungibleAsset,
         is_stable: bool,
-    ) acquires FeesAccounting, LiquidityPool, ResourceAccountCap, MintedAddressStore, NFTProperties, NFTRefs, LiquidityPoolConfigs {
+    ) acquires FeesAccounting, LiquidityPool, ResourceAccountCap, MintedAddressStore, NFTProperties, NFTRefs {
         let lp_address = signer::address_of(lp);
         let token_1 = fungible_asset::metadata_from_asset(&fungible_asset_1);
         let token_2 = fungible_asset::metadata_from_asset(&fungible_asset_2);
@@ -1076,19 +1088,19 @@ module contract::liquidity_pool {
             if (!stop) string::append(&mut nft_uri, string::utf8(b"0"));
         };
 
-        if (hold_time > 2628000) {
+        if (hold_time > 240) {
             string::append(&mut nft_uri, string::utf8(b"orange%20background.png"));
             token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, nft_uri);
             return
-        } else if (hold_time > 604800) {
+        } else if (hold_time > 180) {
             string::append(&mut nft_uri, string::utf8(b"purple%20background.png"));
             token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, nft_uri);
             return
-        } else if (hold_time > 86400) {
+        } else if (hold_time > 120) {
             string::append(&mut nft_uri, string::utf8(b"blue%20background.png"));
             token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, nft_uri);
             return
-        } else if (hold_time > 3600) {
+        } else if (hold_time > 60) {
             string::append(&mut nft_uri, string::utf8(b"green%20background.png"));
             token::set_uri(&borrow_global<NFTRefs>(*token_address).mutator_ref, nft_uri);
             return
@@ -1138,6 +1150,25 @@ module contract::liquidity_pool {
         lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage, pool);
 
         token::uri(nft_object)
+    }
+
+    #[view]
+    public fun get_nft_info(
+        lp: address,
+        token_1: Object<Metadata>,
+        token_2: Object<Metadata>,
+        is_stable: bool,
+    ): (String, u256, u256, u256) acquires ResourceAccountCap, MintedAddressStore, NFTRefs, FeesAccounting, NFTProperties {
+        let pool = liquidity_pool(token_1, token_2, is_stable);
+        let pool_address = object::object_address(&pool);
+        let isMinted = &mut borrow_global_mut<MintedAddressStore>(pool_address).minted;
+        let nft_address = *smart_table::borrow(isMinted, lp);
+        let nft_object = object::address_to_object<Token>(nft_address);
+        let (claimable_fees, lp_token_percentage) = lp_nft_get_fees_and_plt(lp, pool);
+        //update before query
+        lp_nft_update_properties(lp, (claimable_fees as u256), lp_token_percentage, pool);
+        let nft_properties = borrow_global<NFTProperties>(nft_address);
+        (token::uri(nft_object), nft_properties.mint_time, nft_properties.fees, nft_properties.lp_token_percentage)
     }
 
 }

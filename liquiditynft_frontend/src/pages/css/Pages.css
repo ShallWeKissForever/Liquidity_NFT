@@ -1,0 +1,292 @@
+/* 添加全局滚动条控制 */
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+.page-container {
+    margin-top: 80px;
+    padding: 20px;
+    height: calc(100vh - 80px);
+    background-color: #f4f2ff;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.page-card {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    overflow-y: auto;
+    max-height: calc(100vh - 140px);
+}
+
+.page-card h2 {
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.ant-input-search .ant-btn {
+    background-color: #72a1ff;
+    border-color: #72a1ff;
+}
+
+.ant-input-search .ant-btn:hover {
+    background-color: #5a91ff;
+    border-color: #5a91ff;
+}
+
+/* 流动性池功能样式 */
+.box {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 24px 24px 16px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 24px 0 rgba(114, 161, 255, 0.10), 0 1.5px 6px 0 rgba(0,0,0,0.04);
+}
+
+.box-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.box-span {
+    color: #222;
+    font-size: 16px;
+    margin: 8px;
+    font-weight: 500;
+}
+
+.box-span-lp-token-balance {
+    width: 250px;
+    display: inline-block;
+    position: relative;
+    margin-left: -7px;
+    font-size: 15px;
+}
+
+.box-input {
+    flex: 1;
+    font-size: 48px;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #666;
+    font-weight: 500;
+    padding: 0;
+    margin-right: 16px;
+    min-width: 0;
+}
+
+.box-input:focus {
+    border: none;
+    outline: none;
+    background: transparent;
+}
+
+.box-address-input {
+    flex: 1;
+    font-size: 24px;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #666;
+    font-weight: 500;
+    padding: 0;
+    margin-right: 16px;
+    min-width: 0;
+}
+
+.token-selector-div {
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+.token-selector-button {
+    background: #fff;
+    color: #222;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    font-size: 18px;
+    font-weight: 400;
+    padding: 8px 24px;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: box-shadow 0.2s;
+
+}
+
+.token-selector-button:hover {
+    border: 1px solid #72a1ff;
+    color: #72a1ff;
+    background: #f4f8ff;
+}
+
+.token-selector-button-token-img {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+}
+
+.token-selector-button-token-text {
+    font-size: 18px;
+}
+
+.token-selector-modal-row {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.token-selector-modal-row:hover {
+    background-color: #f5f5f5;
+}
+
+.token-selector-modal-image-column {
+    margin-right: 12px;
+}
+
+.token-selector-modal-token-img {
+    width: 32px;
+    height: 32px;
+}
+
+.token-selector-modal-info-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.token-selector-modal-token-name-symbol {
+    font-size: 14px;
+    color: #333;
+}
+
+.token-selector-modal-token-metadata {
+    font-size: 12px;
+    color: #666;
+}
+
+.submit-button-div {
+    margin-top: 20px;
+}
+
+.submit-button {
+    width: 100%;
+    height: 48px;
+    background-color: #f4f8ff;
+    border: none;
+    border-radius: 8px;
+    color: #72a1ff;
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+    background-color: #e6f0ff;
+    color: #3a7cff;
+}
+
+.wallet-button-div {
+    margin-top: 20px;
+}
+
+/* NFT 显示样式 */
+.nft-display {
+    margin-top: 30px;
+    text-align: center;
+    width: 200%;
+}
+
+.nft-display h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.nft-display img {
+    max-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nft-display p {
+    margin-top: 10px;
+    color: #666;
+    font-size: 14px;
+}
+
+.nft-info {
+    text-align: left;
+    width: 150%;
+    background: #F4F8FF;
+    border-radius: 12px;
+    padding: 20px 28px 20px 28px;
+    margin-left: 24px;
+    box-shadow: 0 2px 12px rgba(114, 161, 255, 0.10);
+    font-size: 16px;
+    line-height: 2.1;
+    color: #444;
+}
+
+.nft-info p {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #444;
+    word-break: break-all;
+}
+
+.nft-info p strong {
+    color: #72a1ff;
+    font-weight: 600;
+}
+
+.pool-info {
+    text-align: left;
+    width: 75%;
+    background: #F4F8FF;
+    border-radius: 12px;
+    padding: 20px 28px 20px 28px;
+    margin-left: 24px;
+    box-shadow: 0 2px 12px rgba(114, 161, 255, 0.10);
+    font-size: 16px;
+    line-height: 2.1;
+    color: #444;
+}
+
+.info-list p {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #444;
+    word-break: break-all;
+}
+
+.info-list p strong {
+    color: #72a1ff;
+    font-weight: 600;
+}

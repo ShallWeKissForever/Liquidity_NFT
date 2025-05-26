@@ -8,10 +8,7 @@ authors = []
 #deploy-object
 contract = "_"
 
-#test
-#contract = "0xb7265a57ba9c4dd6aea592a829ee9a399db321a9e9d0030e72e8aed8b47d6cbe"
-
-deployer = "0xc151633b0d36018186dd6ef583275dd0f6596bcc642ccd495d6a6e526a49e3d4"
+deployer = "0xa9ca66ad7f3886cf727f5aa44837af14112cf3446d0a23fb2ae766147c92b7b8"
 
 [dev-addresses]
 

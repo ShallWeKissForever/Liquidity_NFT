@@ -25,6 +25,39 @@ h1 {
     background-color: #ebf2fe !important;
 }
 
+/* 重新设计的导航链接样式 - 内嵌式设计 */
+.nav-links {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    padding-left: 20px;
+}
+
+.nav-link {
+    color: #666666;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 400;
+    padding: 8px 0;
+    position: relative;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-link:hover {
+    color: #72a1ff;
+    text-decoration: none;
+}
+
+.nav-link-active {
+    color: #72a1ff;
+    font-weight: 500;
+    border-bottom: 2px solid #72a1ff;
+}
+
+.nav-link-active:hover {
+    color: #72a1ff;
+}
+
 /* 添加语言切换按钮样式 */
 .language-switch {
     
