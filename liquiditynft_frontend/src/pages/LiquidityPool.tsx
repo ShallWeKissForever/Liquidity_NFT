@@ -5,7 +5,7 @@ import { useWallet, InputTransactionData } from '@aptos-labs/wallet-adapter-reac
 import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
 import { useLanguage } from '../context/LanguageContext';
 import { useTokenContext } from '../context/TokenContext';
-import { Pool, Token, defaultToken } from '../types/type';
+import { Token, defaultToken } from '../types/type';
 import './css/Pages.css';
 
 function LiquidityPool() {
@@ -14,8 +14,6 @@ function LiquidityPool() {
 
     // 使用共享的TokenContext
     const { 
-        pools, 
-        tokenList, 
         filteredTokenListForToken1, 
         fetchingTokenList,
         getFilteredTokenListForToken2,
@@ -32,18 +30,8 @@ function LiquidityPool() {
     // 状态管理
     const [selectedToken1, setSelectedToken1] = useState<Token>(defaultToken);
     const [selectedToken2, setSelectedToken2] = useState<Token>(defaultToken);
-    const [lpNftUri, setLpNftUri] = useState('');
     const [lpTokenBalance, setLpTokenBalance] = useState('');
     const [activeFeature, setActiveFeature] = useState('create'); // 'create', 'add', 'remove'
-
-    // 在selectedToken2有值并连接了钱包时更新
-    useEffect(() => {
-        if (selectedToken2.uri !== '' && account !== null) {
-            getLpNftUri();
-        } else {
-            setLpNftUri('');
-        }
-    }, [selectedToken2, account?.address]);
 
     // 在selectedToken2有值并连接了钱包时更新
     useEffect(() => {
@@ -67,22 +55,6 @@ function LiquidityPool() {
 
     // 过滤出符合 token1 的 pairTokenMetadata 的 token2 列表
     const filteredTokenListForToken2 = getFilteredTokenListForToken2(selectedToken1.metadata);
-
-    // 获取NFT Uri
-    const getLpNftUri = async () => {
-        try {
-            const returnGetLpNftUri = await aptos.view({
-                payload: {
-                    function: `${moduleAddress}::liquidity_pool::get_nft_uri`,
-                    typeArguments: [],
-                    functionArguments: [account?.address?.toString(), selectedToken1.metadata, selectedToken2.metadata, false],
-                },
-            });
-            setLpNftUri(`${returnGetLpNftUri[0]}`);
-        } catch (error) {
-            console.log(error);
-        }
-    };
 
     //获取Lp Token的余额
     const getLpTokenBalance = async () => {

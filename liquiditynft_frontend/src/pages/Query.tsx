@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { WalletSelector } from '@aptos-labs/wallet-adapter-ant-design';
-import { Pool, Token, defaultToken } from '../types/type';
+import { Token, defaultToken } from '../types/type';
 import { useTokenContext } from '../context/TokenContext';
 import './css/Pages.css';
 
@@ -15,8 +15,6 @@ function Query() {
     
     // 使用共享的TokenContext
     const { 
-        pools, 
-        tokenList, 
         filteredTokenListForToken1, 
         fetchingTokenList,
         getFilteredTokenListForToken2

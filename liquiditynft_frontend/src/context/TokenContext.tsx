@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-import { Pool, Token, defaultToken } from '../types/type';
+import { Pool, Token } from '../types/type';
 
 // 创建Context接口
 interface TokenContextType {
