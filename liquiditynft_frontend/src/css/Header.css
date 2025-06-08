@@ -5,7 +5,7 @@
     left: 0;
     right: 0;
     z-index: 1000;
-    background: linear-gradient(to bottom, #e2e0ff, #f4f2ff);
+    background-color: #FFFFFF;
 }
 
 h1 {
@@ -36,7 +36,7 @@ h1 {
 .nav-link {
     color: #666666;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 400;
     padding: 8px 0;
     position: relative;

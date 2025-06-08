@@ -74,7 +74,7 @@ const translations: Record<Language, Record<string, string>> = {
         'coming_soon': '功能即将上线，敬请期待！',
         
         // Query页面相关
-        'query_management': '查询管理',
+        'query_management': '信息查询',
         'nft_query': 'NFT查询',
         'pool_query': '池子查询',
         'query_nft': '查询NFT',
@@ -150,7 +150,7 @@ const translations: Record<Language, Record<string, string>> = {
         'coming_soon': 'Feature coming soon, stay tuned!',
         
         // Query页面相关
-        'query_management': 'Query Management',
+        'query_management': 'Query Information',
         'nft_query': 'NFT Query',
         'pool_query': 'Pool Query',
         'query_nft': 'Query NFT',

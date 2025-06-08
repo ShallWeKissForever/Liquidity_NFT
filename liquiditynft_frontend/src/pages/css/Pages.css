@@ -17,7 +17,6 @@ body {
     margin-top: 80px;
     padding: 20px;
     height: calc(100vh - 80px);
-    background-color: #f4f2ff;
     overflow: hidden;
     position: fixed;
     top: 0;
@@ -29,7 +28,7 @@ body {
 .page-card {
     background-color: #ffffff;
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
     padding: 30px;
     overflow-y: auto;
     max-height: calc(100vh - 140px);
